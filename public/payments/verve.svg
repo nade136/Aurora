@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'>
+  <rect width='120' height='40' fill='none'/>
+  <rect x='32' y='10' width='56' height='20' rx='10' fill='#00a859'/>
+  <text x='60' y='25' text-anchor='middle' font-family='Arial' font-weight='700' font-size='12' fill='white'>VERVE</text>
+</svg>
