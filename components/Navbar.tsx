@@ -4,6 +4,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,32 +26,13 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <div className="relative w-14 h-14 flex items-center justify-center">
-              {/* Custom "A" Logo with cyan base */}
-              <svg
-                width="48"
-                height="48"
-                viewBox="0 0 48 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Cyan/Blue base */}
-                <rect
-                  x="16"
-                  y="32"
-                  width="16"
-                  height="6"
-                  rx="1"
-                  fill="#00D9FF"
-                />
-                <rect x="18" y="34" width="12" height="2" fill="#0099CC" />
-
-                {/* Green "A" */}
-                <path
-                  d="M24 8L14 36H18.5L20 32H28L29.5 36H34L24 8Z"
-                  fill="#39FF14"
-                />
-                <path d="M21.5 28L24 20L26.5 28H21.5Z" fill="#1a1a1a" />
-              </svg>
+              <Image
+                src="/Image%20/Vector%204.svg"
+                alt="Aurora logo"
+                width={48}
+                height={48}
+                priority
+              />
             </div>
           </div>
 
@@ -60,7 +42,7 @@ export default function Navbar() {
               HOME
             </Link>
             <Link href="/services" className={linkClass("/services")}>
-              SERVICES
+              WORKSHOP
             </Link>
             <Link href="/reviews" className={linkClass("/reviews")}>
               REVIEWS
@@ -106,7 +88,7 @@ export default function Navbar() {
                 className={`px-3 py-2 rounded-md ${linkClass("/services")} hover:bg-white/5`}
                 onClick={() => setOpen(false)}
               >
-                SERVICES
+                WORKSHOP
               </Link>
               <Link
                 href="/reviews"

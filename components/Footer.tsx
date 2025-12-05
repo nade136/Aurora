@@ -3,6 +3,7 @@
 import { Linkedin, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -46,26 +47,13 @@ export default function Footer() {
           <div className="space-y-6">
             {/* Aurora Logo */}
             <div className="flex items-center gap-0">
-              <svg
-                width="56"
-                height="56"
-                viewBox="0 0 56 56"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* Cyan/Blue base platform */}
-                <rect x="18" y="40" width="20" height="6" rx="1" fill="#00D9FF" />
-                
-                {/* Neon Green "A" */}
-                <path
-                  d="M28 12L16 44H21L23 38H33L35 44H40L28 12Z"
-                  fill="#CCFF00"
-                />
-                <path 
-                  d="M25 32L28 22L31 32H25Z" 
-                  fill="#151514" 
-                />
-              </svg>
+              <Image
+                src="/Image%20/Vector%204.svg"
+                alt="Aurora logo"
+                width={56}
+                height={56}
+                priority
+              />
             </div>
             
             <div>

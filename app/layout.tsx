@@ -18,10 +18,30 @@ export const metadata: Metadata = {
   description: "Join Aurora's cutting-edge robotics program and accelerate your career in robotics technology. Expert-led courses and hands-on training.",
   keywords: ["robotics", "career", "education", "technology", "training", "courses"],
   authors: [{ name: "Aurora Technologies" }],
+  icons: {
+    icon: "/Image%20/Vector%204.svg",
+    apple: "/Image%20/Vector%204.svg",
+    shortcut: "/Image%20/Vector%204.svg",
+  },
   openGraph: {
     title: "Aurora - Accelerate Your Robotics Career",
     description: "Join Aurora's cutting-edge robotics program and accelerate your career in robotics technology.",
     type: "website",
+    images: [
+      {
+        url: "/Image%20/Vector%204.svg",
+        alt: "Aurora logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    images: [
+      {
+        url: "/Image%20/Vector%204.svg",
+        alt: "Aurora logo",
+      },
+    ],
   },
 };
 
