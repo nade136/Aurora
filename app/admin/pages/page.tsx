@@ -1,6 +1,6 @@
 const PAGES = [
   { title: "Home", slug: "home" },
-  { title: "Services", slug: "services" },
+  { title: "Workshop", slug: "workshop" },
   { title: "Reviews", slug: "reviews" },
   { title: "Rewards", slug: "rewards" },
   { title: "FAQ", slug: "faq" },

@@ -16,7 +16,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="text-white" style={{ backgroundColor: '#151514' }}>
+    <footer className="text-white" style={{ backgroundColor: "#151514" }}>
       {/* CTA Section - Run Into The Unknown */}
       <div className="border-b border-white/5">
         <div className="max-w-[1200px] mx-auto px-16 py-24">
@@ -25,7 +25,9 @@ export default function Footer() {
               RUN INTO THE UNKNOWN
             </h2>
             <p className="text-gray-400 text-base leading-relaxed">
-              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos temporibus iure non error mollitia eos nihil quia ut praesentium fugiat!
+              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos
+              temporibus iure non error mollitia eos nihil quia ut praesentium
+              fugiat!
             </p>
             <div className="flex justify-center">
               <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-8 py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
@@ -55,14 +57,17 @@ export default function Footer() {
                 priority
               />
             </div>
-            
+
             <div>
-              <h2 className="text-xl font-bold text-[#CCFF00] mb-3">AURORA</h2>
+              <h2 className="text-xl font-bold text-[#CCFF00] mb-3">
+                Aurora Robotics
+              </h2>
             </div>
 
             {/* Description Text */}
             <p className="text-gray-400 text-base leading-relaxed max-w-[280px]">
-              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos temporibus iure non error
+              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos
+              temporibus iure non error
             </p>
 
             {/* Social Media Icons */}
@@ -81,8 +86,12 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className="w-11 h-11 bg-white/5 hover:bg-[#CCFF00] rounded-md flex items-center justify-center transition-all duration-300 group border border-white/10"
               >
-                <svg className="w-5 h-5 text-white group-hover:text-black transition-colors" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                <svg
+                  className="w-5 h-5 text-white group-hover:text-black transition-colors"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </Link>
             </div>
@@ -121,9 +130,12 @@ export default function Footer() {
 
           {/* Newsletter Section */}
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-white mb-6">Newsletter</h3>
+            <h3 className="text-xl font-semibold text-white mb-6">
+              Newsletter
+            </h3>
             <p className="text-gray-400 text-base leading-relaxed mb-6">
-              Get tips, updates, and insights about the robotics and engineering industries
+              Get tips, updates, and insights about the robotics and engineering
+              industries
             </p>
 
             {/* Newsletter Form */}
@@ -152,7 +164,7 @@ export default function Footer() {
         {/* Copyright Section */}
         <div className="border-t border-white/5 pt-8">
           <p className="text-center text-gray-500 text-sm">
-            Copyright © 2025 Aurora | All Rights Reserved.
+            Copyright © 2025 Aurora Robotics | All Rights Reserved.{" "}
           </p>
         </div>
       </div>

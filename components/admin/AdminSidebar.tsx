@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Image as ImageIcon, Settings, FileText, Star, Link2, Menu, ChevronLeft } from "lucide-react";
+import { Home, Image as ImageIcon, Settings, FileText, Star, Link2, Menu, ChevronLeft, Award } from "lucide-react";
 import { useState, useEffect } from "react";
 
 const SIDEBAR_STORAGE_KEY = "admin-sidebar-state";
@@ -12,6 +12,7 @@ const nav = [
   { href: "/admin/pages", label: "Pages", icon: FileText },
   { href: "/admin/pages/testimonials", label: "Testimonials", icon: Star },
   { href: "/admin/pages/referrals", label: "Referrals", icon: Link2 },
+  { href: "/admin/certificates", label: "Certificates", icon: Award },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

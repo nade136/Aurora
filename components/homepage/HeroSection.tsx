@@ -99,9 +99,9 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit
-              corrupti et unde magnam Quo eaque enim et aliquid consectetur ab
-              optio voluptas.
+              Learn robotics through practical live training sessions, hands-on
+              courses, and guided projects that teach you how to design, build,
+              and deploy real-world robotic systems.
             </motion.p>
 
             {/* CTA and Students */}
@@ -113,7 +113,9 @@ export default function HeroSection() {
             >
               {/* Book Slot Button */}
               <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-3 sm:px-8 sm:py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
-                <span className="text-sm sm:text-base tracking-wide">Book Slot</span>
+                <span className="text-sm sm:text-base tracking-wide">
+                  Book Slot
+                </span>
                 <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
                   <ArrowRight className="w-3.5 h-3.5 text-[#CCFF00]" />
                 </div>

@@ -2,6 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { type WhatWeDoBlock } from "@/lib/schemas/home";
 
 const services = [
   {
@@ -36,7 +37,12 @@ const services = [
   },
 ];
 
-export default function WhatWeDo() {
+type Props = { whatWeDo?: WhatWeDoBlock };
+
+export default function WhatWeDo({ whatWeDo }: Props) {
+  const items = (whatWeDo?.items && whatWeDo.items.length > 0)
+    ? whatWeDo.items
+    : services.map(s => ({ title: s.title, text: s.description, cta: { label: s.buttonText, url: "#" } }));
   return (
     <section className="relative bg-black py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
@@ -61,19 +67,21 @@ export default function WhatWeDo() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">WHAT WE DO</h2>
-              <p className="text-gray-400 text-sm sm:text-base">
-                At Aurora, we speak one language - Engineering
-              </p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">{whatWeDo?.title || "WHAT WE DO"}</h2>
+              {(whatWeDo?.subtitle || "At Aurora, we speak one language - Engineering") && (
+                <p className="text-gray-400 text-sm sm:text-base">
+                  {whatWeDo?.subtitle || "At Aurora, we speak one language - Engineering"}
+                </p>
+              )}
             </motion.div>
           </div>
 
           {/* Right Side - First Two Cards */}
           <div className="lg:col-span-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {services.slice(0, 2).map((service, index) => (
+              {items.slice(0, 2).map((service, index) => (
                 <motion.div
-                  key={service.title}
+                  key={(service as any).title}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -102,16 +110,16 @@ export default function WhatWeDo() {
 
                     {/* Description */}
                     <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow">
-                      {service.description}
+                      {('description' in service ? (service as any).description : service.text) as string}
                     </p>
 
                     {/* Button */}
-                    <button className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
-                      <span>{service.buttonText}</span>
+                    <a href={(service as any).cta?.url || "#"} className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
+                      <span>{(service as any).cta?.label || (service as any).buttonText}</span>
                       <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
                         <ArrowRight className="w-3 h-3 text-black" />
                       </div>
-                    </button>
+                    </a>
                   </div>
                 </motion.div>
               ))}
@@ -121,9 +129,9 @@ export default function WhatWeDo() {
 
         {/* Bottom Row - 3 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {services.slice(2, 5).map((service, index) => (
+          {items.slice(2, 5).map((service, index) => (
             <motion.div
-              key={service.title}
+              key={(service as any).title}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: (index + 2) * 0.1 }}
@@ -152,16 +160,16 @@ export default function WhatWeDo() {
 
                 {/* Description */}
                 <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow">
-                  {service.description}
+                  {('description' in service ? (service as any).description : service.text) as string}
                 </p>
 
                 {/* Button */}
-                <button className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
-                  <span>{service.buttonText}</span>
+                <a href={(service as any).cta?.url || "#"} className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
+                  <span>{(service as any).cta?.label || (service as any).buttonText}</span>
                   <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
                     <ArrowRight className="w-3 h-3 text-black" />
                   </div>
-                </button>
+                </a>
               </div>
             </motion.div>
           ))}

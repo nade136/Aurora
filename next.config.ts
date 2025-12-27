@@ -12,6 +12,9 @@ try {
 
 const nextConfig: NextConfig = {
   images: {
+    // Allow SVGs and data/blob sources for images used by Next/Image
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; img-src * blob: data:; media-src * blob: data:;",
     remotePatterns: [
       // Existing explicit host (kept)
       {

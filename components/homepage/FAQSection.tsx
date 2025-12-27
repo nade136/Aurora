@@ -7,32 +7,39 @@ import { useState } from "react";
 const faqs = [
   {
     question: "How long would this cohort last?",
-    answer: "For 3 months. It would begin with introductory classes on the 13th of March, 2026 and run for 12 weeks after that."
+    answer:
+      "For 3 months. It would begin with introductory classes on the 13th of March, 2026 and run for 12 weeks after that.",
   },
   {
     question: "What currency do you use?",
-    answer: "We accept payments in USD, EUR, and NGN. All prices are listed in USD by default."
+    answer:
+      "We accept payments in USD, EUR, and NGN. All prices are listed in USD by default.",
+  },
+  {
+    question: "What is the time commitment?",
+    answer:
+      " We recommend setting aside 10-12 hours per week. This includes watching the modules, attending the live Q&A, and- most importantly- debugging your code and hardware.",
   },
   {
     question: "Do you charge a flat fee?",
-    answer: "Yes, we charge a one-time flat fee of $32 for the entire cohort with no hidden charges."
-  },
-  {
-    question: "Do you charge a flat fee?",
-    answer: "Yes, we charge a one-time flat fee of $32 for the entire cohort with no hidden charges."
+    answer:
+      "Yes, we charge a one-time flat fee of $32 for the entire cohort with no hidden charges.",
   },
   {
     question: "Any ongoing support?",
-    answer: "Yes, we provide lifetime access to our community and ongoing support even after the cohort ends."
+    answer:
+      "Yes, we provide lifetime access to our community and ongoing support even after the cohort ends.",
   },
   {
     question: "Can i see previous projects?",
-    answer: "Absolutely! We have a showcase of previous student projects available on our website and social media."
+    answer:
+      "Absolutely! We have a showcase of previous student projects available on our website and social media.",
   },
   {
-    question: "Do u take 100% payment upfront?",
-    answer: "No, we offer flexible payment plans. You can pay 50% upfront and 50% after the first month."
-  }
+    question: "Do you take 100% payment upfront?",
+    answer:
+      "No, we offer flexible payment plans. You can pay 50% upfront and 50% after the first month.",
+  },
 ];
 
 export default function FAQSection() {
@@ -40,9 +47,7 @@ export default function FAQSection() {
 
   const toggleFAQ = (index: number) => {
     setOpenIndexes((prev) =>
-      prev.includes(index)
-        ? prev.filter((i) => i !== index)
-        : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
 
@@ -81,8 +86,8 @@ export default function FAQSection() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className={`relative rounded-2xl overflow-hidden transition-all duration-300 self-start ${
                 openIndexes.includes(index)
-                  ? 'bg-zinc-900 border-2 border-[#CCFF00]'
-                  : 'bg-white border-2 border-transparent'
+                  ? "bg-zinc-900 border-2 border-[#CCFF00]"
+                  : "bg-white border-2 border-transparent"
               }`}
             >
               {/* Question Button */}
@@ -92,12 +97,14 @@ export default function FAQSection() {
               >
                 <span
                   className={`text-base sm:text-lg font-semibold ${
-                    openIndexes.includes(index) ? 'text-[#CCFF00]' : 'text-black'
+                    openIndexes.includes(index)
+                      ? "text-[#CCFF00]"
+                      : "text-black"
                   }`}
                 >
                   {faq.question}
                 </span>
-                
+
                 {openIndexes.includes(index) ? (
                   <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#CCFF00] shrink-0" />
                 ) : (

@@ -41,7 +41,7 @@ export default function Navbar() {
             <Link href="/" className={linkClass("/")}>
               HOME
             </Link>
-            <Link href="/services" className={linkClass("/services")}>
+            <Link href="/workshop" className={linkClass("/workshop")}>
               WORKSHOP
             </Link>
             <Link href="/reviews" className={linkClass("/reviews")}>
@@ -84,8 +84,8 @@ export default function Navbar() {
                 HOME
               </Link>
               <Link
-                href="/services"
-                className={`px-3 py-2 rounded-md ${linkClass("/services")} hover:bg-white/5`}
+                href="/workshop"
+                className={`px-3 py-2 rounded-md ${linkClass("/workshop")} hover:bg-white/5`}
                 onClick={() => setOpen(false)}
               >
                 WORKSHOP

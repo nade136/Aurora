@@ -2,8 +2,11 @@
 
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
 export default function BookSlot() {
+  const searchParams = useSearchParams();
+  const cohort = searchParams.get("cohort") || "";
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
@@ -12,6 +15,12 @@ export default function BookSlot() {
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-white text-3xl md:text-4xl font-bold">Registering for this cohort gives you lifetime access</h1>
           <p className="text-gray-400 mt-2">to all resources released during this cohort</p>
+          {cohort && (
+            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#C6FF00] text-[#C6FF00] text-xs">
+              <span>Cohort:</span>
+              <span className="font-semibold">{cohort}</span>
+            </div>
+          )}
 
           <div className="mt-6 flex items-center justify-center gap-3">
             <button className="bg-[#C6FF00] text-black font-semibold px-5 py-2 rounded-lg hover:bg-[#b8e600]">Learn More</button>
@@ -24,6 +33,7 @@ export default function BookSlot() {
         <div className="max-w-5xl mx-auto">
           {/* Form */}
           <form className="space-y-5">
+            <input type="hidden" name="cohort" value={cohort} />
             {/* Names */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
