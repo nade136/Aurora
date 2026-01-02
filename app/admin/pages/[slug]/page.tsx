@@ -38,6 +38,8 @@ export default function AdminHomeEditor() {
   const [pickTarget, setPickTarget] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Live Preview-only placeholder count for Workshop cohorts (does not affect saved content)
+  const [previewCount, setPreviewCount] = useState<number>(3);
 
   useEffect(() => {
     setMounted(true);
@@ -435,7 +437,7 @@ export default function AdminHomeEditor() {
 
             <section className="bg-gray-800 p-6 rounded-lg">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Cohorts</h2>
+                <h2 className="text-xl font-semibold">Cohorts <span className="text-sm text-gray-400">({cohorts.length})</span></h2>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -712,8 +714,25 @@ export default function AdminHomeEditor() {
           {/* Live Preview */}
           <div className="bg-gray-800 p-6 rounded-lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Live Preview</h2>
-              
+              <h2 className="text-xl font-semibold">
+                Live Preview{' '}
+                <span className="text-sm text-gray-400">
+                  (Real: {cohorts.length} | Preview: {Math.max(0, previewCount - cohorts.length)} | Total: {Math.max(cohorts.length, previewCount)})
+                </span>
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+                  onClick={() => setPreviewCount((n) => n + 1)}
+                >Add Preview Div</button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 rounded text-sm disabled:opacity-50"
+                  onClick={() => setPreviewCount((n) => Math.max(0, n - 1))}
+                  disabled={previewCount <= 0}
+                >Remove Preview Div</button>
+              </div>
             </div>
             <div className="max-w-4xl mx-auto text-center mb-10">
               <h1 className="text-white font-bold text-4xl mb-3 tracking-wider cursor-pointer" onClick={() => focusRef(wpHeaderRefs.current.title as unknown as HTMLElement)}>{(content as any)?.workshopPage?.title || 'WORKSHOP'}</h1>
@@ -725,12 +744,19 @@ export default function AdminHomeEditor() {
               <div className="text-sm text-gray-400">Loading preview…</div>
             ) : (() => {
               const list = [...cohorts];
-              if (list.length === 0) {
-                list.push({ id: 0, badge: 'ONGOING', img: '', title: 'Aurora Core Workshop (Cohort 2)', description: 'Build a full robotics pipeline with Python, ROS and Raspberry Pi.', fee: '$32 USD / 50,000 NGN', date: 'MARCH 2026 to APRIL 2026' });
-              }
-              while (list.length < 3) {
+              // Fill preview-only placeholders up to previewCount
+              const fillersNeeded = Math.max(0, previewCount - list.length);
+              for (let j = 0; j < fillersNeeded; j++) {
                 const i = list.length;
-                list.push({ id: i, badge: i === 1 ? 'UPCOMING' : 'UPCOMING', img: '', title: i === 1 ? 'Aurora Core Workshop (Cohort 3)' : 'Aurora Core Workshop (Cohort 4)', description: 'Short program description', fee: '$32 USD / 50,000 NGN', date: 'MAY 2026 to JUNE 2026' });
+                list.push({
+                  id: i,
+                  badge: i === 0 ? 'ONGOING' : 'UPCOMING',
+                  img: '',
+                  title: i === 0 ? 'Aurora Core Workshop (Cohort 2)' : i === 1 ? 'Aurora Core Workshop (Cohort 3)' : 'Aurora Core Workshop (Cohort 4)',
+                  description: 'Short program description',
+                  fee: '$32 USD / 50,000 NGN',
+                  date: i === 0 ? 'MARCH 2026 to APRIL 2026' : 'MAY 2026 to JUNE 2026'
+                });
               }
               const previewCohorts = list;
               return (
@@ -740,15 +766,27 @@ export default function AdminHomeEditor() {
                   {/* Per-card controls */}
                   <div className="absolute top-3 left-3 z-10 flex gap-2">
                     {i < cohorts.length && (
-                      <button
-                        type="button"
-                        className="px-2 py-1 text-xs bg-red-600 hover:bg-red-500 rounded"
-                        onClick={() => {
-                          const next = [...cohorts];
-                          next.splice(i, 1);
-                          handleNestedChange(['workshopPage','cohorts'], next);
-                        }}
-                      >Remove</button>
+                      <>
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-500 rounded"
+                          onClick={() => {
+                            const next = [...cohorts];
+                            const [item] = next.splice(i, 1);
+                            next.unshift(item);
+                            handleNestedChange(['workshopPage','cohorts'], next);
+                          }}
+                        >Make First</button>
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-xs bg-red-600 hover:bg-red-500 rounded"
+                          onClick={() => {
+                            const next = [...cohorts];
+                            next.splice(i, 1);
+                            handleNestedChange(['workshopPage','cohorts'], next);
+                          }}
+                        >Remove</button>
+                      </>
                     )}
                   </div>
                   <div className="relative" onClick={() => { const input = document.getElementById(`cohort-img-${i}`) as HTMLInputElement | null; if (input) input.click(); else focusRef(wpRefs.current.img[i] as unknown as HTMLElement); }}>
