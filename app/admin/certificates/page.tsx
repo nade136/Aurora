@@ -901,7 +901,7 @@ Aurora Robotics.`
                           const f = e.dataTransfer?.files?.[0];
                           if (f) {
                             setFilesById(prev => ({ ...prev, [s.id]: f }));
-                            setFileName(f.name);
+                            setFileNames(prev => ({ ...prev, [s.id]: f.name }));
                           }
                           setDragOverId(null);
                         }}

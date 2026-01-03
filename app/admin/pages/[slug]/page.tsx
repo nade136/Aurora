@@ -1166,7 +1166,7 @@ export default function AdminHomeEditor() {
                         bullets[i] = e.target.value;
                         handleNestedChange(['workshop', 'whoItsFor', 'bullets'], bullets);
                       }}
-                      ref={el => wRefs.current.bullets[i] = el as unknown as HTMLInputElement}
+                      ref={(el) => { wRefs.current.bullets[i] = el as unknown as HTMLInputElement | null; }}
                       className="flex-1 bg-gray-700 rounded px-3 py-2"
                       placeholder={`Bullet point ${i + 1}`}
                     />
