@@ -107,16 +107,7 @@ Aurora Robotics.`
     });
   }, []);
 
-  // Define StudentRow type
-  type StudentRow = {
-    id: string;
-    name: string;
-    email: string;
-    position: string;
-    cohort: string;
-    issuedAt: string;
-    fileUrl?: string | null;
-  };
+  
 
   // minimal toast system (placed before fetch to avoid use-before-declare)
   type Toast = { id: number; type: "success" | "error" | "info"; text: string };
