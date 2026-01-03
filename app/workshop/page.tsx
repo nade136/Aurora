@@ -105,7 +105,7 @@ export default async function Workshop() {
         </div>
 
         <div className="max-w-5xl mx-auto mt-10">
-          {(content?.cohorts ?? []).map((c) => (
+          {((content?.cohorts ?? []) as Cohort[]).map((c) => (
             <CohortCard key={c.id} c={c} />
           ))}
         </div>

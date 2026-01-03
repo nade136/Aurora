@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useTestimonialStore } from "@/store/testimonialStore";
@@ -37,6 +37,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
       role: "Core Workshop - Cohort 1",
       quote:
         "Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos temporibus iure non error mollitia eos nihil quia ut praesentium fugiat! Et facilis cumque et ipsam praesentium ut autem nulla est tenetur maxime et consequuntur recusandae.",
+      avatar: "",
       video: "/videos/testimonial-1.mp4",
     },
   ];
@@ -45,13 +46,17 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
   const currentTestimonial = data[Math.min(currentIndex, data.length - 1)];
 
   // Countdown (live) based on workshop.whoItsFor.countdownTargetISO
-  const [now, setNow] = useState<number>(Date.now());
+  const [startTs, setStartTs] = useState<number>(0);
+  const [tick, setTick] = useState<number>(0);
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    setStartTs(Date.now());
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
   const targetISO = w?.whoItsFor?.countdownTargetISO;
-  const diffMs = targetISO ? Math.max(0, new Date(targetISO).getTime() - now) : 0;
+  const targetTs = targetISO ? new Date(targetISO).getTime() : 0;
+  const elapsed = startTs > 0 ? tick * 1000 : 0;
+  const diffMs = targetISO ? Math.max(0, targetTs - (startTs + elapsed)) : 0;
   const hrs = Math.floor(diffMs / 3_600_000);
   const mins = Math.floor((diffMs % 3_600_000) / 60_000);
   const secs = Math.floor((diffMs % 60_000) / 1000);

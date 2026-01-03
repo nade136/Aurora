@@ -3,8 +3,9 @@
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function BookSlot() {
+function BookSlotInner() {
   const searchParams = useSearchParams();
   const cohort = searchParams.get("cohort") || "";
   return (
@@ -137,5 +138,13 @@ export default function BookSlot() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function BookSlot() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black"><Navbar /></div>}>
+      <BookSlotInner />
+    </Suspense>
   );
 }
