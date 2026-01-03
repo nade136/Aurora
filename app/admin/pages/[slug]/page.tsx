@@ -1204,7 +1204,7 @@ export default function AdminHomeEditor() {
                   type="text"
                   value={content.workshop?.whoItsFor?.cta?.label || ''}
                   onChange={(e) => handleNestedChange(['workshop', 'whoItsFor', 'cta', 'label'], e.target.value)}
-                  ref={el => wRefs.current.ctaLabel = el}
+                  ref={(el) => { wRefs.current.ctaLabel = el as HTMLInputElement | null; }}
                   className="w-full bg-gray-700 rounded px-3 py-2"
                   placeholder="e.g., Register Now"
                 />
@@ -1215,7 +1215,7 @@ export default function AdminHomeEditor() {
                   type="text"
                   value={content.workshop?.whoItsFor?.cta?.url || ''}
                   onChange={(e) => handleNestedChange(['workshop', 'whoItsFor', 'cta', 'url'], e.target.value)}
-                  ref={el => wRefs.current.ctaUrl = el}
+                  ref={(el) => { wRefs.current.ctaUrl = el as HTMLInputElement | null; }}
                   className="w-full bg-gray-700 rounded px-3 py-2"
                   placeholder="https://example.com/register"
                 />
@@ -1230,7 +1230,7 @@ export default function AdminHomeEditor() {
                   type="text"
                   value={content.workshop?.whoItsFor?.priceLabel || ''}
                   onChange={(e) => handleNestedChange(['workshop', 'whoItsFor', 'priceLabel'], e.target.value)}
-                  ref={el => wRefs.current.priceLabel = el}
+                  ref={(el) => { wRefs.current.priceLabel = el as HTMLInputElement | null; }}
                   className="w-full bg-gray-700 rounded px-3 py-2"
                   placeholder="e.g., Only $99"
                 />
@@ -1241,7 +1241,7 @@ export default function AdminHomeEditor() {
                   type="text"
                   value={content.workshop?.whoItsFor?.countdownLabel || ''}
                   onChange={(e) => handleNestedChange(['workshop', 'whoItsFor', 'countdownLabel'], e.target.value)}
-                  ref={el => wRefs.current.countdownLabel = el}
+                  ref={(el) => { wRefs.current.countdownLabel = el as HTMLInputElement | null; }}
                   className="w-full bg-gray-700 rounded px-3 py-2"
                   placeholder="e.g., Registration closes in"
                 />
@@ -1256,7 +1256,7 @@ export default function AdminHomeEditor() {
                     const date = new Date(e.target.value);
                     handleNestedChange(['workshop', 'whoItsFor', 'countdownTargetISO'], date.toISOString());
                   }}
-                  ref={el => wRefs.current.countdownISO = el}
+                  ref={(el) => { wRefs.current.countdownISO = el as HTMLInputElement | null; }}
                   className="w-full bg-gray-700 rounded px-3 py-2"
                 />
                 {content.workshop?.whoItsFor?.countdownTargetISO && (
