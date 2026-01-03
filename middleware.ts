@@ -7,10 +7,17 @@ export async function middleware(req: NextRequest) {
 
   // Hard block admin/auth unless explicitly enabled
   const adminEnabled = process.env.ADMIN_ENABLED === "true";
+  const adminOnly = process.env.ADMIN_ONLY === "true";
   const path = req.nextUrl.pathname;
   if (!adminEnabled && (path.startsWith("/admin") || path.startsWith("/auth"))) {
     // Return 404 to avoid exposing auth surface in production when disabled
     return new NextResponse(null, { status: 404 });
+  }
+
+  // If admin-only mode is enabled, redirect any non-admin/auth route to /admin
+  if (adminOnly && !(path.startsWith("/admin") || path.startsWith("/auth"))) {
+    const url = new URL("/admin", req.url);
+    return NextResponse.redirect(url);
   }
 
   const supabase = createServerClient(
@@ -51,5 +58,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/auth/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/auth/:path*",
+    // Apply middleware to all routes to support ADMIN_ONLY redirects, excluding common static assets
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)",
+  ],
 };
