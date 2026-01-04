@@ -11,8 +11,8 @@ export async function middleware(req: NextRequest) {
     const vv = v.trim().toLowerCase();
     return vv === "true" || vv === "1" || vv === "yes";
   };
-  const adminEnabled = truthy(process.env.ADMIN_ENABLED);
-  const adminOnly = truthy(process.env.ADMIN_ONLY);
+  const adminEnabled = truthy(process.env.ADMIN_ENABLED) || truthy(process.env.NEXT_PUBLIC_ADMIN_ENABLED);
+  const adminOnly = truthy(process.env.ADMIN_ONLY) || truthy(process.env.NEXT_PUBLIC_ADMIN_ONLY);
   const path = req.nextUrl.pathname;
   if (!adminEnabled && (path.startsWith("/admin") || path.startsWith("/auth"))) {
     // Return 404 to avoid exposing auth surface in production when disabled
@@ -51,7 +51,7 @@ export async function middleware(req: NextRequest) {
       signInUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname + req.nextUrl.search);
       return NextResponse.redirect(signInUrl);
     }
-    const allowedEmail = process.env.ADMIN_EMAIL;
+    const allowedEmail = process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
     if (allowedEmail && session.user.email !== allowedEmail) {
       const signInUrl = new URL("/auth/sign-in", req.url);
       signInUrl.searchParams.set("error", "not_authorized");
