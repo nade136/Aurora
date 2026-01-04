@@ -6,8 +6,13 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
   // Hard block admin/auth unless explicitly enabled
-  const adminEnabled = process.env.ADMIN_ENABLED === "true";
-  const adminOnly = process.env.ADMIN_ONLY === "true";
+  const truthy = (v?: string) => {
+    if (!v) return false;
+    const vv = v.trim().toLowerCase();
+    return vv === "true" || vv === "1" || vv === "yes";
+  };
+  const adminEnabled = truthy(process.env.ADMIN_ENABLED);
+  const adminOnly = truthy(process.env.ADMIN_ONLY);
   const path = req.nextUrl.pathname;
   if (!adminEnabled && (path.startsWith("/admin") || path.startsWith("/auth"))) {
     // Return 404 to avoid exposing auth surface in production when disabled
