@@ -7,31 +7,36 @@ import { type WhatWeDoBlock } from "@/lib/schemas/home";
 const services = [
   {
     title: "Education",
-    description: "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
+    description:
+      "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
     buttonText: "Register Now",
     buttonColor: "#CCFF00",
   },
   {
     title: "Hardware",
-    description: "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
+    description:
+      "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
     buttonText: "Schedule A Meeting",
     buttonColor: "#CCFF00",
   },
   {
     title: "Robotics Software",
-    description: "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
+    description:
+      "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
     buttonText: "Register Now",
     buttonColor: "#CCFF00",
   },
   {
     title: "Consultation",
-    description: "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
+    description:
+      "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
     buttonText: "Schedule A Meeting",
     buttonColor: "#CCFF00",
   },
   {
     title: "Firmware",
-    description: "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
+    description:
+      "Lorem ipsum dolor sit amet. Ad molestiae adipisci ut velit corrupti et unde magnam Quo eaque enim et aliquid consectetur ab optio voluptas.",
     buttonText: "Register Now",
     buttonColor: "#CCFF00",
   },
@@ -40,9 +45,14 @@ const services = [
 type Props = { whatWeDo?: WhatWeDoBlock };
 
 export default function WhatWeDo({ whatWeDo }: Props) {
-  const items = (whatWeDo?.items && whatWeDo.items.length > 0)
-    ? whatWeDo.items
-    : services.map(s => ({ title: s.title, text: s.description, cta: { label: s.buttonText, url: "#" } }));
+  const items =
+    whatWeDo?.items && whatWeDo.items.length > 0
+      ? whatWeDo.items
+      : services.map((s) => ({
+          title: s.title,
+          text: s.description,
+          cta: { label: s.buttonText, url: "#" },
+        }));
   return (
     <section className="relative bg-black py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
@@ -67,10 +77,14 @@ export default function WhatWeDo({ whatWeDo }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">{whatWeDo?.title || "WHAT WE DO"}</h2>
-              {(whatWeDo?.subtitle || "At Aurora, we speak one language - Engineering") && (
-                <p className="text-gray-400 text-sm sm:text-base">
-                  {whatWeDo?.subtitle || "At Aurora, we speak one language - Engineering"}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">
+                {whatWeDo?.title || "WHAT WE DO"}
+              </h2>
+              {(whatWeDo?.subtitle ||
+                "At Aurora, we speak one language - Engineering") && (
+                <p className="text-gray-400 text-sm sm:text-base ">
+                  {whatWeDo?.subtitle ||
+                    "At Aurora, we speak one language - Engineering"}
                 </p>
               )}
             </motion.div>
@@ -109,13 +123,23 @@ export default function WhatWeDo({ whatWeDo }: Props) {
                     </h3>
 
                     {/* Description */}
-                    <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow">
-                      {('description' in service ? (service as any).description : service.text) as string}
+                    <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow hover-react group-hover:text-white">
+                      {
+                        ("description" in service
+                          ? (service as any).description
+                          : service.text) as string
+                      }
                     </p>
 
                     {/* Button */}
-                    <a href={(service as any).cta?.url || "#"} className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
-                      <span>{(service as any).cta?.label || (service as any).buttonText}</span>
+                    <a
+                      href={(service as any).cta?.url || "#"}
+                      className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1"
+                    >
+                      <span>
+                        {(service as any).cta?.label ||
+                          (service as any).buttonText}
+                      </span>
                       <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
                         <ArrowRight className="w-3 h-3 text-black" />
                       </div>
@@ -159,13 +183,22 @@ export default function WhatWeDo({ whatWeDo }: Props) {
                 </h3>
 
                 {/* Description */}
-                <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow">
-                  {('description' in service ? (service as any).description : service.text) as string}
+                <p className="text-gray-400 text-sm leading-relaxed mb-6 sm:mb-8 grow hover-react group-hover:text-white">
+                  {
+                    ("description" in service
+                      ? (service as any).description
+                      : service.text) as string
+                  }
                 </p>
 
                 {/* Button */}
-                <a href={(service as any).cta?.url || "#"} className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1">
-                  <span>{(service as any).cta?.label || (service as any).buttonText}</span>
+                <a
+                  href={(service as any).cta?.url || "#"}
+                  className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1"
+                >
+                  <span>
+                    {(service as any).cta?.label || (service as any).buttonText}
+                  </span>
                   <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
                     <ArrowRight className="w-3 h-3 text-black" />
                   </div>

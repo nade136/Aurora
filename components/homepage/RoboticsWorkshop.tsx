@@ -8,13 +8,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { type TestimonialsBlock, type WorkshopBlock } from "@/lib/schemas/home";
 import { mediaPublicUrl } from "@/utils/media";
-
 type Props = {
   workshop?: WorkshopBlock;
   testimonials?: TestimonialsBlock;
 };
 
-export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props) {
+export default function RoboticsWorkshop({
+  workshop: w,
+  testimonials: t,
+}: Props) {
   const { currentIndex, setCurrentIndex } = useTestimonialStore();
 
   const toUrl = (p?: string | null) => {
@@ -108,8 +110,9 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
               <h3 className="text-2xl font-bold text-white mb-4">
                 {w?.leftFeature?.title || "Learn the Right Tools"}
               </h3>
-              <p className="text-gray-400 text-sm mb-4 sm:mb-6">
-                {w?.leftFeature?.text || "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
+              <p className="text-gray-400 text-sm mb-4 sm:mb-6 hover-react group-hover:text-white">
+                {w?.leftFeature?.text ||
+                  "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
               </p>
 
               {/* Icons */}
@@ -120,14 +123,19 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                   {w.leftFeature.media.kind === "video" ? (
                     <video
                       src={toUrl(w.leftFeature.media.src)}
-                      poster={toUrl(w.leftFeature.media.poster || "") || undefined}
+                      poster={
+                        toUrl(w.leftFeature.media.poster || "") || undefined
+                      }
                       controls
                       playsInline
                       className="w-[300px] sm:w-[420px] lg:w-[560px] h-auto"
                     />
                   ) : (
                     <Image
-                      src={toUrl(w.leftFeature.media.src) || "/Image%20/do2%201.svg"}
+                      src={
+                        toUrl(w.leftFeature.media.src) ||
+                        "/Image%20/do2%201.svg"
+                      }
                       alt={w.leftFeature.title || "Left feature"}
                       width={640}
                       height={360}
@@ -260,8 +268,13 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
               <h3 className="text-2xl font-bold text-white mb-4">
                 {w?.rightFeature?.title || "Industry relevant skills"}
               </h3>
-              <p className="text-gray-400 text-sm mb-6 sm:mb-8">
-                {w?.rightFeature?.text || "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
+              <p
+                className={
+                  "text-gray-400 text-sm mb-6 sm:mb-8 hover-react group-hover:text-white"
+                }
+              >
+                {w?.rightFeature?.text ||
+                  "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
               </p>
 
               <div className="mt-auto flex justify-center">
@@ -269,14 +282,19 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                   w.rightFeature.media.kind === "video" ? (
                     <video
                       src={toUrl(w.rightFeature.media.src)}
-                      poster={toUrl(w.rightFeature.media.poster || "") || undefined}
+                      poster={
+                        toUrl(w.rightFeature.media.poster || "") || undefined
+                      }
                       controls
                       playsInline
                       className="mx-auto w-[320px] sm:w-[480px] lg:w-[640px] h-auto"
                     />
                   ) : (
                     <Image
-                      src={toUrl(w.rightFeature.media.src) || "/Image%20/Industry%20skills.svg"}
+                      src={
+                        toUrl(w.rightFeature.media.src) ||
+                        "/Image%20/Industry%20skills.svg"
+                      }
                       alt={w.rightFeature.title || "Industry relevant skills"}
                       width={400}
                       height={56}
@@ -325,8 +343,9 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
               <h3 className="text-xl font-bold text-white mb-3">
                 {w?.handsOn?.title || "Hands-on Project"}
               </h3>
-              <p className="text-gray-400 text-sm mb-4 sm:mb-6">
-                {w?.handsOn?.text || "From Python to Raspberry pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
+              <p className="text-gray-400 text-sm mb-4 sm:mb-6 hover-react group-hover:text-white">
+                {w?.handsOn?.text ||
+                  "From Python to Raspberry pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
               </p>
               <div className="rounded-lg overflow-hidden grow flex items-center justify-center p-2">
                 {w?.handsOn?.media?.src ? (
@@ -340,7 +359,9 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                     />
                   ) : (
                     <Image
-                      src={toUrl(w.handsOn.media.src) || "/Image%20/do2%201.svg"}
+                      src={
+                        toUrl(w.handsOn.media.src) || "/Image%20/do2%201.svg"
+                      }
                       alt={w.handsOn.title || "Hands-on Project"}
                       width={640}
                       height={360}
@@ -386,7 +407,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
               {/* ROBOTICS CORE 2.0 Badge */}
               <div className="border border-zinc-700 rounded-lg p-4 mb-6">
                 <div className="text-white font-semibold mb-3">
-                  {(w?.title || "ROBOTICS CORE 2.0")} {" "}
+                  {w?.title || "ROBOTICS CORE 2.0"}{" "}
                   <span className="text-gray-400 text-sm sm:text-base">
                     {w?.whoItsFor?.countdownLabel || "Begins in"}
                   </span>
@@ -422,12 +443,15 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                   WHO IT&apos;S FOR
                 </h3>
                 <ul className="space-y-2 mb-6">
-                  {(w?.whoItsFor?.bullets?.length ? w.whoItsFor.bullets : [
-                    "Students",
-                    "Tech-Professionals",
-                    "Robotic Enthusiasts",
-                    "Hardware Developers"
-                  ]).map((b, i) => (
+                  {(w?.whoItsFor?.bullets?.length
+                    ? w.whoItsFor.bullets
+                    : [
+                        "Students",
+                        "Tech-Professionals",
+                        "Robotic Enthusiasts",
+                        "Hardware Developers",
+                      ]
+                  ).map((b, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-[#CCFF00] rounded-full" />
                       <span className="text-gray-400 text-sm">{b}</span>
@@ -436,8 +460,13 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                 </ul>
 
                 <div className="flex flex-col gap-4">
-                  <Link href={w?.whoItsFor?.cta?.url || "/book-slot?cohort=core-2"} className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 w-full justify-center">
-                    <span className="text-sm">{w?.whoItsFor?.cta?.label || "Register Now"}</span>
+                  <Link
+                    href={w?.whoItsFor?.cta?.url || "/book-slot?cohort=core-2"}
+                    className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 w-full justify-center"
+                  >
+                    <span className="text-sm">
+                      {w?.whoItsFor?.cta?.label || "Register Now"}
+                    </span>
                     <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
                       <ArrowRight className="w-2.5 h-2.5 text-[#CCFF00]" />
                     </div>
@@ -476,15 +505,18 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
               <h3 className="text-xl font-bold text-white mb-3">
                 {w?.careerGrowth?.title || "Career Growth"}
               </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                {w?.careerGrowth?.text || "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
+              <p className="text-gray-400 text-sm mb-6 hover-react group-hover:text-white">
+                {w?.careerGrowth?.text ||
+                  "From Python to Raspberry Pi learn from Aurora ist amet. Ad molestiae adipisci ut velit corrupti et"}
               </p>
               <div className="rounded-lg overflow-hidden grow flex items-center justify-center p-2">
                 {w?.careerGrowth?.media?.src ? (
                   w.careerGrowth.media.kind === "video" ? (
                     <video
                       src={toUrl(w.careerGrowth.media.src)}
-                      poster={toUrl(w.careerGrowth.media.poster || "") || undefined}
+                      poster={
+                        toUrl(w.careerGrowth.media.poster || "") || undefined
+                      }
                       controls
                       playsInline
                       className="w-[300px] sm:w-[420px] lg:w-[560px] h-auto"
@@ -513,8 +545,6 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
             </div>
           </motion.div>
         </div>
-
-        
 
         {/* Proof That We Deliver Section */}
         <motion.div
@@ -550,7 +580,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                 <h3 className="text-3xl font-bold text-white mb-3">
                   {t?.title || "PROOF THAT WE DELIVER"}
                 </h3>
-                <p className="text-gray-400 text-sm mb-8">
+                <p className="text-gray-400 text-sm mb-8 hover-react group-hover:text-white">
                   {t?.subtitle || "What our students say"}
                 </p>
 
@@ -568,7 +598,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                       <div className="relative w-12 h-12 rounded-full overflow-hidden">
                         <Image
                           src={toUrl(items[0].avatar)}
-                          alt={items[0].name || 'Testimonial author'}
+                          alt={items[0].name || "Testimonial author"}
                           width={48}
                           height={48}
                           className="object-cover w-full h-full"
@@ -579,10 +609,10 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                     )}
                     <div>
                       <div className="text-white font-semibold text-sm line-clamp-1">
-                        {items[0]?.name || 'John Ikenna'}
+                        {items[0]?.name || "John Ikenna"}
                       </div>
                       <div className="text-gray-400 text-xs line-clamp-1">
-                        {items[0]?.role || 'Core Workshop - Cohort 1'}
+                        {items[0]?.role || "Core Workshop - Cohort 1"}
                       </div>
                     </div>
                   </div>
@@ -596,7 +626,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                   <div className="text-5xl sm:text-7xl text-gray-600 mb-4 sm:mb-6 leading-none">
                     &ldquo;
                   </div>
-                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed hover-react group-hover:text-white">
                     {currentTestimonial?.quote || t?.leadQuote || ""}
                   </p>
                 </div>
@@ -608,7 +638,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                       <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
                         <Image
                           src={toUrl(currentTestimonial.avatar)}
-                          alt={currentTestimonial?.name || 'Testimonial author'}
+                          alt={currentTestimonial?.name || "Testimonial author"}
                           width={48}
                           height={48}
                           className="object-cover w-full h-full"
@@ -638,7 +668,7 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                       <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden">
                         <Image
                           src={toUrl(currentTestimonial.avatar)}
-                          alt={currentTestimonial?.name || 'Testimonial author'}
+                          alt={currentTestimonial?.name || "Testimonial author"}
                           width={56}
                           height={56}
                           className="object-cover w-full h-full"
@@ -663,7 +693,9 @@ export default function RoboticsWorkshop({ workshop: w, testimonials: t }: Props
                   {t?.heroVideo ? (
                     <video
                       src={toUrl(t?.heroVideo)}
-                      poster={toUrl(t?.heroPoster) || toUrl(t?.heroImage) || undefined}
+                      poster={
+                        toUrl(t?.heroPoster) || toUrl(t?.heroImage) || undefined
+                      }
                       controls
                       playsInline
                       className="w-full h-full object-cover"

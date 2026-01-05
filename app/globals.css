@@ -1,1 +1,7 @@
 @import "tailwindcss";
+@layer components {
+  .hover-react {
+    @apply transition-colors transition-transform duration-300 ease-out inline-block
+           group-hover:!text-white group-hover:scale-110;
+  }
+}
