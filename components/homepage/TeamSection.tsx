@@ -26,7 +26,7 @@ const teamMembers = [
 
 export default function TeamSection() {
   return (
-    <section className="relative bg-white py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
+    <section className="relative bg-[#000000] py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -42,8 +42,8 @@ export default function TeamSection() {
             </span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black mb-4">
-            THE ARCHITECTS OF CREATIVITY
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ccff02] mb-4">
+            Team Aurora
           </h2>
           <p className="text-gray-500 text-base sm:text-lg">
             Meet the Team behind the vision at Aurora

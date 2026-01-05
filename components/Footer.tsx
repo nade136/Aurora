@@ -25,9 +25,7 @@ export default function Footer() {
               RUN INTO THE UNKNOWN
             </h2>
             <p className="text-gray-400 text-base leading-relaxed">
-              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos
-              temporibus iure non error mollitia eos nihil quia ut praesentium
-              fugiat!
+              &quot;Move with Intent, Leave Nothing to Chance&quot;
             </p>
             <div className="flex justify-center">
               <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-8 py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
@@ -65,10 +63,6 @@ export default function Footer() {
             </div>
 
             {/* Description Text */}
-            <p className="text-gray-400 text-base leading-relaxed max-w-[280px]">
-              Lorem ipsum dolor sit amet. Et dicta magni ut sint galisum eos
-              temporibus iure non error
-            </p>
 
             {/* Social Media Icons */}
             <div className="flex items-center gap-3">
