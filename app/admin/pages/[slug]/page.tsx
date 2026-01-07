@@ -40,6 +40,8 @@ export default function AdminHomeEditor() {
   const [mounted, setMounted] = useState(false);
   // Live Preview-only placeholder count for Workshop cohorts (does not affect saved content)
   const [previewCount, setPreviewCount] = useState<number>(3);
+  // Admin preview-only: selected testimonial index
+  const [tPreviewIndex, setTPreviewIndex] = useState<number>(0);
 
   useEffect(() => {
     setMounted(true);
@@ -192,7 +194,7 @@ export default function AdminHomeEditor() {
       focusItem(index, field);
       return;
     }
-    const filler = { name: '', role: '', text: '', avatar: '' };
+    const filler = { name: '', role: '', text: '', avatar: '', videoUrl: content.testimonials?.heroVideo || '' };
     const next = [...current];
     while (next.length <= index) next.push({ ...filler });
     handleNestedChange(['testimonials', 'items'], next);
@@ -1972,7 +1974,8 @@ export default function AdminHomeEditor() {
                       name: '', 
                       role: '', 
                       text: '', 
-                      avatar: '' 
+                      avatar: '',
+                      videoUrl: content.testimonials?.heroVideo || ''
                     };
                     handleNestedChange(
                       ['testimonials', 'items'], 
@@ -2091,6 +2094,132 @@ export default function AdminHomeEditor() {
                             className="w-full bg-gray-600 rounded px-3 py-2 h-24"
                             placeholder="Share your experience..."
                           />
+                        </div>
+                        
+                        {/* Featured Media (per-profile) */}
+                        <div className="pt-2 mt-1 border-t border-white/10">
+                          <div className="text-xs font-semibold text-white/90 mb-2">Featured Media (This Profile)</div>
+                        </div>
+
+                        {/* Video URL (optional) */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Video URL (optional)</label>
+                          <input
+                            type="text"
+                            value={item.videoUrl || ''}
+                            onChange={(e) => {
+                              const newItems = [...(content.testimonials?.items || [])];
+                              newItems[index] = { ...newItems[index], videoUrl: e.target.value };
+                              handleNestedChange(['testimonials','items'], newItems);
+                            }}
+                            className="w-full bg-gray-600 rounded px-3 py-2"
+                            placeholder="https://... or storage path"
+                          />
+                          <input
+                            type="file"
+                            accept="video/*"
+                            className="mt-2 block w-full text-xs text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-white/10 file:text-white hover:file:bg-white/20"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              try {
+                                const url = await uploadFile(f, 'testimonials/videos');
+                                const newItems = [...(content.testimonials?.items || [])];
+                                newItems[index] = { ...newItems[index], videoUrl: url };
+                                handleNestedChange(['testimonials','items'], newItems);
+                              } catch (error) {
+                                console.error('Error uploading video:', error);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Poster Image (optional) */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Video Poster Image (optional)</label>
+                          <input
+                            type="text"
+                            value={(item as any).posterUrl || ''}
+                            onChange={(e) => {
+                              const newItems = [...(content.testimonials?.items || [])];
+                              newItems[index] = { ...newItems[index], posterUrl: e.target.value } as any;
+                              handleNestedChange(['testimonials','items'], newItems);
+                            }}
+                            className="w-full bg-gray-600 rounded px-3 py-2"
+                            placeholder="https://... or storage path"
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="mt-2 block w-full text-xs text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-white/10 file:text-white hover:file:bg-white/20"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              try {
+                                const url = await uploadFile(f, 'testimonials/posters');
+                                const newItems = [...(content.testimonials?.items || [])];
+                                newItems[index] = { ...newItems[index], posterUrl: url } as any;
+                                handleNestedChange(['testimonials','items'], newItems);
+                              } catch (error) {
+                                console.error('Error uploading poster:', error);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Image Fallback (optional) */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Image Fallback (optional)</label>
+                          <input
+                            type="text"
+                            value={(item as any).imageUrl || ''}
+                            onChange={(e) => {
+                              const newItems = [...(content.testimonials?.items || [])];
+                              newItems[index] = { ...newItems[index], imageUrl: e.target.value } as any;
+                              handleNestedChange(['testimonials','items'], newItems);
+                            }}
+                            className="w-full bg-gray-600 rounded px-3 py-2"
+                            placeholder="https://... or storage path"
+                          />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="mt-2 block w-full text-xs text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-white/10 file:text-white hover:file:bg-white/20"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              if (!f) return;
+                              try {
+                                const url = await uploadFile(f, 'testimonials/images');
+                                const newItems = [...(content.testimonials?.items || [])];
+                                newItems[index] = { ...newItems[index], imageUrl: url } as any;
+                                handleNestedChange(['testimonials','items'], newItems);
+                              } catch (error) {
+                                console.error('Error uploading image:', error);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Media Preview */}
+                        <div className="mt-2">
+                          <label className="block text-sm font-medium mb-1">Preview</label>
+                          <div className="relative w-full h-40 rounded border border-white/10 overflow-hidden bg-black/40 flex items-center justify-center">
+                            {item.videoUrl ? (
+                              <video
+                                src={item.videoUrl}
+                                poster={(item as any).posterUrl || undefined}
+                                className="w-full h-full object-cover"
+                                muted
+                                playsInline
+                                loop
+                              />
+                            ) : (item as any).imageUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={(item as any).imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-xs text-gray-400">No media selected</div>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="flex justify-between items-center">
@@ -2321,14 +2450,21 @@ export default function AdminHomeEditor() {
                           </a>
                         )}
                         <div className="space-y-2">
-                          {(content.testimonials?.items && content.testimonials.items.length > 0
-                            ? content.testimonials.items
-                            : [
-                                { name: 'Sample Person', role: 'Role', avatar: '' },
-                                { name: 'Another Person', role: 'Role', avatar: '' },
-                              ]
-                          ).slice(0, 2).map((it, i) => (
-                            <div key={i} className="flex items-center gap-3 bg-gray-800/60 border border-white/10 rounded-full px-3 py-2 cursor-pointer" onClick={() => focusOrCreateItem(i, 'name')}>
+                          {(
+                            content.testimonials?.items && content.testimonials.items.length > 0
+                              ? content.testimonials.items
+                              : [
+                                  { name: 'Sample Person', role: 'Role', avatar: '' },
+                                  { name: 'Another Person', role: 'Role', avatar: '' },
+                                  { name: 'Third Person', role: 'Role', avatar: '' },
+                                ]
+                          ).map((it, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              className={`w-full flex items-center gap-3 bg-gray-800/60 border border-white/10 rounded-2xl px-3 py-2 text-left ${i === tPreviewIndex ? 'ring-1 ring-lime-300/40' : ''}`}
+                              onClick={() => setTPreviewIndex(i)}
+                            >
                               <img
                                 src={it?.avatar || 'https://i.pravatar.cc/48?img=12'}
                                 alt={it?.name || 'Avatar'}
@@ -2338,41 +2474,44 @@ export default function AdminHomeEditor() {
                                 <div className="text-xs font-medium truncate">{it?.name || 'Sample Person'}</div>
                                 <div className="text-[10px] text-gray-400 truncate">{it?.role || 'Role'}</div>
                               </div>
-                              <span className="ml-auto h-2 w-2 rounded-full bg-lime-300"></span>
-                            </div>
+                              <span className={`ml-auto h-2 w-2 rounded-full ${i === tPreviewIndex ? 'bg-lime-300' : 'bg-white/30'}`}></span>
+                            </button>
                           ))}
                         </div>
                       </div>
 
-                      {/* Middle: Quote card */}
+                      {/* Middle: Quote card (uses selected testimonial text) */}
                       <div className="bg-gray-800/60 border border-white/10 rounded-xl p-5 flex flex-col justify-between">
                         <div className="text-5xl text-gray-500 leading-none">“</div>
-                        <p className="text-gray-300 text-sm leading-relaxed cursor-pointer" onClick={() => focusRef(tRefs.current.leadQuote)}>
-                          {content.testimonials?.leadQuote || 'A compelling quote to highlight in the center of the section.'}
-                        </p>
                         {(() => {
-                          const idx = content.testimonials?.featuredIndex ?? 0;
-                          const it = content.testimonials?.items?.[idx] || { name: 'Sample Person', role: 'Role', avatar: '' };
+                          const items = content.testimonials?.items || [];
+                          const idx = Math.min(Math.max(0, tPreviewIndex), Math.max(0, items.length - 1));
+                          const it: any = items[idx] || {};
+                          const text = it?.text || '';
                           return (
-                            <div className="mt-4 flex items-center gap-2">
-                              <img src={it.avatar || 'https://i.pravatar.cc/64?img=14'} alt={it.name || 'Avatar'} className="h-6 w-6 rounded-full object-cover cursor-pointer" onClick={() => focusOrCreateItem(idx, 'name')} />
-                              <div className="text-xs">
-                                <div className="font-medium cursor-pointer" onClick={() => focusOrCreateItem(idx, 'name')}>{it.name || 'Sample Person'}</div>
-                                <div className="text-gray-400 cursor-pointer" onClick={() => focusOrCreateItem(idx, 'role')}>{it.role || 'Role'}</div>
+                            <>
+                              <p className="text-gray-300 text-sm leading-relaxed">{text || 'Write a testimonial to preview here.'}</p>
+                              <div className="mt-4 flex items-center gap-2">
+                                <img src={it?.avatar || 'https://i.pravatar.cc/64?img=14'} alt={it?.name || 'Avatar'} className="h-6 w-6 rounded-full object-cover" />
+                                <div className="text-xs">
+                                  <div className="font-medium">{it?.name || 'Sample Person'}</div>
+                                  <div className="text-gray-400">{it?.role || 'Role'}</div>
+                                </div>
                               </div>
-                            </div>
+                            </>
                           );
                         })()}
                       </div>
 
-                      {/* Right: Featured media */}
+                      {/* Right: Media of selected testimonial with fallbacks */}
                       <div className="bg-gray-800/60 border border-white/10 rounded-xl p-4">
                         {(() => {
-                          const idx = content.testimonials?.featuredIndex ?? 0;
-                          const it = content.testimonials?.items?.[idx] || { name: 'Sample Person', role: 'Role', avatar: '' };
+                          const items = content.testimonials?.items || [];
+                          const idx = Math.min(Math.max(0, tPreviewIndex), Math.max(0, items.length - 1));
+                          const it: any = items[idx] || {};
                           return (
-                            <div className="mb-3 flex items-center gap-2 cursor-pointer" onClick={() => focusOrCreateItem(idx, 'name')}>
-                              <img src={it.avatar || 'https://i.pravatar.cc/64?img=14'} alt={it?.name || 'Avatar'} className="h-6 w-6 rounded-full object-cover" />
+                            <div className="mb-3 flex items-center gap-2">
+                              <img src={it?.avatar || 'https://i.pravatar.cc/64?img=14'} alt={it?.name || 'Avatar'} className="h-6 w-6 rounded-full object-cover" />
                               <div className="text-xs">
                                 <div className="font-medium truncate max-w-[10rem]">{it?.name || 'Sample Person'}</div>
                                 <div className="text-gray-400 truncate max-w-[10rem]">{it?.role || 'Role'}</div>
@@ -2381,28 +2520,28 @@ export default function AdminHomeEditor() {
                           );
                         })()}
 
-                        <div className="relative rounded-lg overflow-hidden aspect-video bg-black cursor-pointer" onClick={() => focusRef(content.testimonials?.heroVideo ? tRefs.current.heroVideo : tRefs.current.heroImage)}>
-                          {content.testimonials?.heroVideo ? (
-                            <>
-                              <video
-                                src={content.testimonials.heroVideo}
-                                className="w-full h-full object-cover"
-                                poster={content.testimonials.heroPoster || undefined}
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-12 h-12 bg-white/20 border border-white/40 rounded-full flex items-center justify-center">
-                                  <svg className="w-5 h-5 text-white" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
-                                  </svg>
-                                </div>
-                              </div>
-                            </>
-                          ) : content.testimonials?.heroImage ? (
-                            <img src={content.testimonials.heroImage} alt="Featured" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-500">No media selected</div>
-                          )}
-                        </div>
+                        {(() => {
+                          const items = content.testimonials?.items || [];
+                          const idx = Math.min(Math.max(0, tPreviewIndex), Math.max(0, items.length - 1));
+                          const it: any = items[idx] || {};
+                          const hasVideo = !!it?.videoUrl;
+                          const hasImage = !!it?.imageUrl;
+                          return (
+                            <div className="relative rounded-lg overflow-hidden aspect-video bg-black">
+                              {hasVideo ? (
+                                <video src={it.videoUrl} className="w-full h-full object-cover" poster={it?.posterUrl || undefined} />
+                              ) : hasImage ? (
+                                <img src={it.imageUrl} alt="Selected media" className="w-full h-full object-cover" />
+                              ) : content.testimonials?.heroVideo ? (
+                                <video src={content.testimonials.heroVideo} className="w-full h-full object-cover" poster={content.testimonials.heroPoster || undefined} />
+                              ) : content.testimonials?.heroImage ? (
+                                <img src={content.testimonials.heroImage} alt="Featured" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500">No media selected</div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
