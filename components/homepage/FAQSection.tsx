@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 const faqs = [
@@ -84,32 +84,36 @@ export default function FAQSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`relative rounded-2xl overflow-hidden transition-all duration-300 self-start ${
+              className={`group relative rounded-2xl overflow-hidden transition-all duration-300 self-start ${
                 openIndexes.includes(index)
                   ? "bg-zinc-900 border-2 border-[#CCFF00]"
-                  : "bg-white border-2 border-transparent"
+                  : "bg-white border-2 border-transparent hover:border-zinc-300"
               }`}
             >
               {/* Question Button */}
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full p-4 sm:p-6 flex items-center justify-between gap-3 sm:gap-4 text-left"
+                aria-expanded={openIndexes.includes(index)}
+                aria-controls={`faq-panel-${index}`}
+                className="w-full p-4 sm:p-6 flex items-center justify-between gap-3 sm:gap-4 text-left cursor-pointer"
               >
                 <span
                   className={`text-base sm:text-lg font-semibold ${
                     openIndexes.includes(index)
                       ? "text-[#CCFF00]"
-                      : "text-black"
+                      : "text-black group-hover:text-zinc-800"
                   }`}
                 >
                   {faq.question}
                 </span>
-
-                {openIndexes.includes(index) ? (
-                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#CCFF00] shrink-0" />
-                ) : (
-                  <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-black shrink-0" />
-                )}
+                <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
+                  <span className="hidden sm:inline">{openIndexes.includes(index) ? "Hide answer" : "Show answer"}</span>
+                  <ChevronDown
+                    className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 ${
+                      openIndexes.includes(index) ? "rotate-180 text-[#CCFF00]" : "rotate-0 text-black group-hover:text-zinc-800"
+                    }`}
+                  />
+                </span>
               </button>
 
               {/* Answer */}
@@ -121,6 +125,7 @@ export default function FAQSection() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
+                    id={`faq-panel-${index}`}
                   >
                     <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
                       <p className="text-gray-300 text-sm sm:text-base leading-relaxed">

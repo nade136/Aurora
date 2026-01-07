@@ -30,7 +30,7 @@ export default function RoboticsWorkshop({
     role: it.role || "",
     quote: it.text || "",
     avatar: toUrl(it.avatar),
-    video: toUrl(t?.heroVideo),
+    video: toUrl(it.videoUrl),
   }));
 
   const fallback = [
@@ -46,6 +46,8 @@ export default function RoboticsWorkshop({
 
   const data = items.length > 0 ? items : fallback;
   const currentTestimonial = data[Math.min(currentIndex, data.length - 1)];
+  const [showAll, setShowAll] = useState(false);
+  const remaining = Math.max(0, items.length - 3);
 
   // Countdown (live) based on workshop.whoItsFor.countdownTargetISO
   const [startTs, setStartTs] = useState<number>(0);
@@ -584,38 +586,60 @@ export default function RoboticsWorkshop({
                   {t?.subtitle || "What our students say"}
                 </p>
 
-                <button className="mb-8 flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 w-fit">
-                  <span>See More Reviews</span>
-                  <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
-                    <ArrowRight className="w-3 h-3 text-black" />
-                  </div>
-                </button>
-
-                {/* Dynamic Profile Card */}
-                <div className="border border-zinc-800 rounded-2xl p-4 bg-zinc-900/50">
-                  <div className="flex items-center gap-3">
-                    {items[0]?.avatar ? (
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                        <Image
-                          src={toUrl(items[0].avatar)}
-                          alt={items[0].name || "Testimonial author"}
-                          width={48}
-                          height={48}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-12 h-12 bg-orange-500 rounded-full" />
-                    )}
-                    <div>
-                      <div className="text-white font-semibold text-sm line-clamp-1">
-                        {items[0]?.name || "John Ikenna"}
-                      </div>
-                      <div className="text-gray-400 text-xs line-clamp-1">
-                        {items[0]?.role || "Core Workshop - Cohort 1"}
-                      </div>
+                {items.length > 3 && (
+                  <button
+                    onClick={() => setShowAll((v) => !v)}
+                    aria-expanded={showAll}
+                    aria-controls="testimonials-list"
+                    className="mb-6 flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 w-fit"
+                  >
+                    <span>
+                      {showAll ? 'See less' : `See ${remaining} more reviews`}
+                    </span>
+                    <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
+                      <ArrowRight className={`w-3 h-3 text-black transition-transform ${showAll ? 'rotate-180' : ''}`} />
                     </div>
-                  </div>
+                  </button>
+                )}
+
+                {/* People list - click to switch */}
+                <div id="testimonials-list" className="relative space-y-2">
+                  {(showAll ? items : items.slice(0, 3)).map((it, i) => (
+                    <button
+                      key={`${it.name}-${i}`}
+                      onClick={() => setCurrentIndex(i)}
+                      className={`w-full text-left border border-zinc-800 rounded-2xl p-3 bg-zinc-900/50 hover:bg-zinc-900 transition ${
+                        i === currentIndex ? "ring-1 ring-[#CCFF00]/50" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {it?.avatar ? (
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                            <Image
+                              src={toUrl(it.avatar)}
+                              alt={it.name || "Testimonial author"}
+                              width={40}
+                              height={40}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 bg-orange-500 rounded-full" />
+                        )}
+                        <div>
+                          <div className="text-white font-semibold text-sm line-clamp-1">
+                            {it?.name || "Anonymous"}
+                          </div>
+                          <div className="text-gray-400 text-xs line-clamp-1">
+                            {it?.role || ""}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  {!showAll && items.length > 3 && (
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-b-2xl" />
+                  )}
                 </div>
               </div>
 
@@ -688,9 +712,19 @@ export default function RoboticsWorkshop({
                   </div>
                 </div>
 
-                {/* Large Video (with image) */}
+                {/* Large Video/Image uses current testimonial first, then section fallbacks */}
                 <div className="relative w-full aspect-3/4 bg-zinc-800 rounded-2xl overflow-hidden">
-                  {t?.heroVideo ? (
+                  {currentTestimonial?.video ? (
+                    <video
+                      src={toUrl(currentTestimonial.video)}
+                      poster={
+                        toUrl(t?.heroPoster) || toUrl(t?.heroImage) || undefined
+                      }
+                      controls
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : t?.heroVideo ? (
                     <video
                       src={toUrl(t?.heroVideo)}
                       poster={
@@ -700,30 +734,26 @@ export default function RoboticsWorkshop({
                       playsInline
                       className="w-full h-full object-cover"
                     />
+                  ) : t?.heroPoster || t?.heroImage ? (
+                    <Image
+                      src={
+                        toUrl(t?.heroPoster) ||
+                        toUrl(t?.heroImage) ||
+                        "/Image%20/Image_fx%20(10)%201.svg"
+                      }
+                      alt="Testimonial media"
+                      fill
+                      className="object-cover"
+                      priority
+                    />
                   ) : (
-                    <>
-                      {t?.heroPoster || t?.heroImage ? (
-                        <Image
-                          src={
-                            toUrl(t?.heroPoster) ||
-                            toUrl(t?.heroImage) ||
-                            "/Image%20/Image_fx%20(10)%201.svg"
-                          }
-                          alt="Testimonial media"
-                          fill
-                          className="object-cover"
-                          priority
-                        />
-                      ) : (
-                        <Image
-                          src="/Image%20/Image_fx%20(10)%201.svg"
-                          alt="Testimonial video placeholder"
-                          fill
-                          className="object-cover"
-                          priority
-                        />
-                      )}
-                    </>
+                    <Image
+                      src="/Image%20/Image_fx%20(10)%201.svg"
+                      alt="Testimonial video placeholder"
+                      fill
+                      className="object-cover"
+                      priority
+                    />
                   )}
                 </div>
               </div>

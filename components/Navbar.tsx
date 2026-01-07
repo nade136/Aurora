@@ -20,7 +20,7 @@ export default function Navbar() {
     console.log("Navbar pathname:", pathname);
   }
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800/20 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl w-[calc(100%-1rem)] sm:w-auto">
+    <nav className="fixed top-2 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800/20 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl w-[calc(100%-1rem)] sm:w-auto">
       <div className="px-4 sm:px-6 md:px-8 py-4">
         <div className="flex items-center justify-between gap-4 md:gap-16 md:min-w-[800px]">
           {/* Logo */}

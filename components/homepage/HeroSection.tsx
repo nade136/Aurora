@@ -8,9 +8,41 @@ import Navbar from "../Navbar";
 export default function HeroSection() {
   return (
     <section className="relative mx-2 mt-4 sm:mx-4 sm:mt-5 lg:mx-6 lg:mt-6">
+      {/* Mobile-only: same shape but with slightly curved bottom left/right edges */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none z-30 sm:hidden"
+        preserveAspectRatio="none"
+        viewBox="0 0 1000 600"
+        style={{
+          filter: `
+            drop-shadow(0 0 20px rgba(0, 217, 255, 0.5))
+            drop-shadow(0 0 40px rgba(0, 217, 255, 0.3))
+            drop-shadow(0 0 60px rgba(0, 217, 255, 0.2))
+          `,
+        }}
+      >
+        <path
+          d="M 24,2
+             L 976,2
+             Q 998,2 998,24
+             L 998,560
+             Q 998,580 980,580
+             L 600,580
+             L 550,544
+             L 450,544
+             L 400,580
+             L 20,580
+             Q 2,580 2,560
+             L 2,24
+             Q 2,2 24,2 Z"
+          fill="none"
+          stroke="#00D9FF"
+          strokeWidth="2"
+        />
+      </svg>
       {/* Custom Border with Notch using SVG */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-30"
+        className="absolute inset-0 w-full h-full pointer-events-none z-30 hidden sm:block"
         preserveAspectRatio="none"
         viewBox="0 0 1000 600"
         style={{
