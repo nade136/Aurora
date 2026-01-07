@@ -101,7 +101,7 @@ export default function HeroSection() {
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source
-              src="/Image /Whisk_mtyzqjyhrgm1mwzj1in5emytuwzzqtl4imy30sy.mp4"
+              src="/Image /aurora.mp4"
               type="video/mp4"
             />
           </video>
