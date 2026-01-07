@@ -87,13 +87,13 @@ export default function RoboticsWorkshop({
         </motion.div>
 
         {/* Top Two Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
-          {/* Learn the Right Tools */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-12">
+          {/* Left Card */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="relative group"
+            className="relative group hover:bg-opacity-10 hover:bg-white/5 transition-all duration-300 p-4 rounded-lg"
           >
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none"
@@ -251,7 +251,7 @@ export default function RoboticsWorkshop({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative group"
+            className="relative group hover:bg-opacity-10 hover:bg-white/5 transition-all duration-300 p-4 rounded-lg"
           >
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none"
@@ -326,7 +326,7 @@ export default function RoboticsWorkshop({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative group"
+            className="relative group hover:bg-opacity-10 hover:bg-white/5 transition-all duration-300 p-4 rounded-lg"
           >
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none"
@@ -488,7 +488,7 @@ export default function RoboticsWorkshop({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="relative group"
+            className="relative group hover:bg-opacity-10 hover:bg-white/5 transition-all duration-300 p-4 rounded-lg"
           >
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none"

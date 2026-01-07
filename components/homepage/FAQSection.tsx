@@ -98,7 +98,7 @@ export default function FAQSection() {
                 className="w-full p-4 sm:p-6 flex items-center justify-between gap-3 sm:gap-4 text-left cursor-pointer"
               >
                 <span
-                  className={`text-base sm:text-lg font-semibold ${
+                  className={`flex-1 min-w-0 truncate text-base sm:text-lg font-semibold ${
                     openIndexes.includes(index)
                       ? "text-[#CCFF00]"
                       : "text-black group-hover:text-zinc-800"
@@ -106,8 +106,8 @@ export default function FAQSection() {
                 >
                   {faq.question}
                 </span>
-                <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
-                  <span className="hidden sm:inline">{openIndexes.includes(index) ? "Hide answer" : "Show answer"}</span>
+                <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs text-zinc-500 whitespace-nowrap">
+                  <span className="whitespace-nowrap">{openIndexes.includes(index) ? "Hide answer" : "Show answer"}</span>
                   <ChevronDown
                     className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 ${
                       openIndexes.includes(index) ? "rotate-180 text-[#CCFF00]" : "rotate-0 text-black group-hover:text-zinc-800"
