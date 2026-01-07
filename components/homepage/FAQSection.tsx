@@ -95,13 +95,13 @@ export default function FAQSection() {
                 onClick={() => toggleFAQ(index)}
                 aria-expanded={openIndexes.includes(index)}
                 aria-controls={`faq-panel-${index}`}
-                className="w-full p-4 sm:p-6 flex items-center justify-between gap-3 sm:gap-4 text-left cursor-pointer"
+                className="w-full p-4 sm:p-6 flex items-start justify-between gap-3 sm:gap-4 text-left cursor-pointer"
               >
                 <span
-                  className={`flex-1 min-w-0 truncate text-base sm:text-lg font-semibold ${
+                  className={`flex-1 min-w-0 text-base sm:text-lg font-semibold ${
                     openIndexes.includes(index)
-                      ? "text-[#CCFF00]"
-                      : "text-black group-hover:text-zinc-800"
+                      ? "text-[#CCFF00] whitespace-normal break-words"
+                      : "text-black group-hover:text-zinc-800 truncate"
                   }`}
                 >
                   {faq.question}
