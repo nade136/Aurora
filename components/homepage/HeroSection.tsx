@@ -98,12 +98,10 @@ export default function HeroSection() {
             loop
             muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-[90%_center] sm:object-[95%_center] lg:object-[100%_center] \
+                       transform translate-x-[14%] sm:translate-x-[16%] lg:translate-x-[22%] scale-[1.18] lg:scale-[1.22] will-change-transform"
           >
-            <source
-              src="/Image /aurora.mp4"
-              type="video/mp4"
-            />
+            <source src="/Image /aurora.mp4" type="video/mp4" />
           </video>
           {/* Gradient overlay for blending */}
           <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent" />
