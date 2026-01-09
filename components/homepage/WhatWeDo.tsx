@@ -118,7 +118,7 @@ export default function WhatWeDo({ whatWeDo }: Props) {
                   {/* Card Content */}
                   <div className="relative p-6 sm:p-8 flex flex-col h-full min-h-[240px] sm:min-h-[280px]">
                     {/* Title */}
-                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 hover-react">
                       {service.title}
                     </h3>
 
@@ -178,7 +178,7 @@ export default function WhatWeDo({ whatWeDo }: Props) {
               {/* Card Content */}
               <div className="relative p-8 flex flex-col h-full min-h-[280px]">
                 {/* Title */}
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4 hover-react">
                   {service.title}
                 </h3>
 
