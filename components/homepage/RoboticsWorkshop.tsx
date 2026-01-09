@@ -109,7 +109,7 @@ export default function RoboticsWorkshop({
             </svg>
 
             <div className="relative p-6 sm:p-8 flex flex-col min-h-[720px] sm:min-h-[820px]">
-              <h3 className="text-2xl font-bold text-white mb-4">
+              <h3 className="text-2xl font-bold text-white mb-4 hover-react">
                 {w?.leftFeature?.title || "Learn the Right Tools"}
               </h3>
               <p className="text-gray-400 text-sm mb-4 sm:mb-6 hover-react group-hover:text-white">
@@ -267,7 +267,7 @@ export default function RoboticsWorkshop({
             </svg>
 
             <div className="relative p-6 sm:p-8 flex flex-col min-h-[320px] sm:min-h-[400px]">
-              <h3 className="text-2xl font-bold text-white mb-4">
+              <h3 className="text-2xl font-bold text-white mb-4 hover-react">
                 {w?.rightFeature?.title || "Industry relevant skills"}
               </h3>
               <p
@@ -342,7 +342,7 @@ export default function RoboticsWorkshop({
             </svg>
 
             <div className="relative p-6 sm:p-8 flex flex-col min-h-[420px] sm:min-h-[500px]">
-              <h3 className="text-xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-white mb-3 hover-react">
                 {w?.handsOn?.title || "Hands-on Project"}
               </h3>
               <p className="text-gray-400 text-sm mb-4 sm:mb-6 hover-react group-hover:text-white">
@@ -441,7 +441,7 @@ export default function RoboticsWorkshop({
 
               {/* WHO IT'S FOR */}
               <div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-3 hover-react">
                   WHO IT&apos;S FOR
                 </h3>
                 <ul className="space-y-2 mb-6">
@@ -504,7 +504,7 @@ export default function RoboticsWorkshop({
             </svg>
 
             <div className="relative p-8 flex flex-col min-h-[500px]">
-              <h3 className="text-xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-white mb-3 hover-react">
                 {w?.careerGrowth?.title || "Career Growth"}
               </h3>
               <p className="text-gray-400 text-sm mb-6 hover-react group-hover:text-white">
@@ -579,7 +579,7 @@ export default function RoboticsWorkshop({
                   </span>
                 </div>
 
-                <h3 className="text-3xl font-bold text-white mb-3">
+                <h3 className="text-3xl font-bold text-white mb-3 hover-react">
                   {t?.title || "PROOF THAT WE DELIVER"}
                 </h3>
                 <p className="text-gray-400 text-sm mb-8 hover-react group-hover:text-white">
@@ -594,10 +594,14 @@ export default function RoboticsWorkshop({
                     className="mb-6 flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 w-fit"
                   >
                     <span>
-                      {showAll ? 'See less' : `See ${remaining} more reviews`}
+                      {showAll ? "See less" : `See ${remaining} more reviews`}
                     </span>
                     <div className="w-5 h-5 bg-[#CCFF00] rounded-full flex items-center justify-center">
-                      <ArrowRight className={`w-3 h-3 text-black transition-transform ${showAll ? 'rotate-180' : ''}`} />
+                      <ArrowRight
+                        className={`w-3 h-3 text-black transition-transform ${
+                          showAll ? "rotate-180" : ""
+                        }`}
+                      />
                     </div>
                   </button>
                 )}

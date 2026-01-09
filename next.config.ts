@@ -37,6 +37,16 @@ const nextConfig = {
         : []),
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/why-robotics",
+        destination:
+          "https://docs.google.com/forms/d/e/1FAIpQLScMlBUzXuKBPt_yLI6m7dHB5FpfMy4WpKILldnxzKasasO_-A/viewform?usp=header",
+        permanent: true,
+      },
+    ];
+  },
 } as unknown as NextConfig;
 
 export default nextConfig;
