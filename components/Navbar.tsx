@@ -37,7 +37,7 @@ export default function Navbar() {
           </div>
 
           {/* Navigation Links - Desktop */}
-          <div className="hidden md:flex items-center space-x-12">
+          <div className="hidden md:flex items-center space-x-12 whitespace-nowrap">
             <Link href="/" className={linkClass("/")}>
               HOME
             </Link>
@@ -50,11 +50,14 @@ export default function Navbar() {
             <Link href="/rewards" className={linkClass("/rewards")}>
               AWARDS
             </Link>
+            <Link href="/internships" className={linkClass("/internships")}>
+              INTERNSHIPS
+            </Link>
           </div>
 
           {/* Right side: CTA (desktop) + Hamburger (mobile) */}
-          <div className="flex items-center">
-            <Link href="/book-slot" className="hidden md:flex bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2.5 rounded-lg items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/20">
+          <div className="flex items-center whitespace-nowrap">
+            <Link href="/book-slot" className="hidden md:inline-flex bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2.5 rounded-lg items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/20">
               <span className="text-sm tracking-wide">Book Slot</span>
               <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
                 <ArrowRight className="w-3 h-3 text-[#CCFF00]" />
@@ -96,6 +99,13 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
               >
                 REVIEWS
+              </Link>
+              <Link
+                href="/internships"
+                className={`px-3 py-2 rounded-md ${linkClass("/internships")} hover:bg-white/5`}
+                onClick={() => setOpen(false)}
+              >
+                INTERNSHIPS
               </Link>
               <Link
                 href="/rewards"

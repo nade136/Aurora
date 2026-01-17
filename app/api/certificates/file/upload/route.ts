@@ -10,6 +10,7 @@ export async function POST(req: Request) {
     const file = form.get("file") as File | null;
     const cohort = String(form.get("cohort") || "").trim();
     const issuedAt = String(form.get("issuedAt") || "").trim();
+    const displayName = String(form.get("displayName") || "").trim();
     if (!studentId || !file) {
       return NextResponse.json({ error: "studentId and file are required" }, { status: 400 });
     }
@@ -35,10 +36,12 @@ export async function POST(req: Request) {
 
     // Persist URL on student row if column exists
     try {
-      await sb.from("students").update({ file_url: fileUrl }).eq("id", studentId);
+      const update: Record<string, unknown> = { file_url: fileUrl };
+      if (displayName) update.file_display_name = displayName;
+      await sb.from("students").update(update).eq("id", studentId);
     } catch {}
 
-    return NextResponse.json({ fileUrl, path });
+    return NextResponse.json({ fileUrl, path, displayName: displayName || null });
   } catch (e: unknown) {
     const msg = typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : String(e);
     return NextResponse.json({ error: msg }, { status: 500 });

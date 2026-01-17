@@ -22,9 +22,11 @@
     "react-dom": "19.2.0",
     "tailwind-merge": "^3.4.0",
     "three": "^0.181.0",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@next/swc-darwin-arm64": "^16.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
