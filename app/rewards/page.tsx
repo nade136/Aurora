@@ -7,10 +7,22 @@ const GOLD = "#D4AF37";
 
 function PortraitCard({ src }: { src: string }) {
   return (
-    <div className="inline-block rounded-2xl p-1" style={{ boxShadow: `0 0 0 2px ${GOLD}` }}>
-      <div className="rounded-xl p-1 bg-[#0f0f0f]" style={{ boxShadow: "inset 0 0 0 2px white" }}>
+    <div
+      className="inline-block rounded-2xl p-1"
+      style={{ boxShadow: `0 0 0 2px ${GOLD}` }}
+    >
+      <div
+        className="rounded-xl p-1 bg-[#0f0f0f]"
+        style={{ boxShadow: "inset 0 0 0 2px white" }}
+      >
         <div className="w-[360px] h-[420px] rounded-lg overflow-hidden bg-[#111]">
-          <Image src={src} alt="Portrait" width={360} height={420} className="w-full h-full object-cover" />
+          <Image
+            src={src}
+            alt="Portrait"
+            width={360}
+            height={420}
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>
@@ -20,19 +32,48 @@ function PortraitCard({ src }: { src: string }) {
 // (Animations CSS will be injected via a plain <style> tag inside the component return)
 
 const mediaUrl = (path?: string | null) =>
-  path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${path}` : undefined;
+  path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${path}`
+    : undefined;
 
 async function getLiveAwards() {
   const supabase = await supabaseServer();
   // find page id by slug
-  const { data: pages } = await supabase.from("pages").select("id").eq("slug", "rewards").limit(1);
+  const { data: pages } = await supabase
+    .from("pages")
+    .select("id")
+    .eq("slug", "rewards")
+    .limit(1);
   const pageId = pages?.[0]?.id as string | undefined;
-  if (!pageId) return [] as Array<{ key: string; title: string; quote?: string; icon?: string; name: string; portrait?: string; description?: string }>;
+  if (!pageId)
+    return [] as Array<{
+      key: string;
+      title: string;
+      quote?: string;
+      icon?: string;
+      name: string;
+      portrait?: string;
+      description?: string;
+    }>;
 
   // find section id for 'awards'
-  const { data: sections } = await supabase.from("sections").select("id").eq("page_id", pageId).eq("key", "awards").limit(1);
+  const { data: sections } = await supabase
+    .from("sections")
+    .select("id")
+    .eq("page_id", pageId)
+    .eq("key", "awards")
+    .limit(1);
   const sectionId = sections?.[0]?.id as string | undefined;
-  if (!sectionId) return [] as Array<{ key: string; title: string; quote?: string; icon?: string; name: string; portrait?: string; description?: string }>;
+  if (!sectionId)
+    return [] as Array<{
+      key: string;
+      title: string;
+      quote?: string;
+      icon?: string;
+      name: string;
+      portrait?: string;
+      description?: string;
+    }>;
 
   // fetch blocks
   const { data: blks } = await supabase
@@ -59,7 +100,8 @@ async function getLiveAwards() {
   const awards = (blks || []).map((b: BlockRow) => {
     const iconVal = b.data?.icon as string | undefined;
     const portraitVal = b.data?.portrait as string | undefined;
-    const resolve = (p?: string) => (!p ? undefined : p.startsWith("/") ? p : mediaUrl(p));
+    const resolve = (p?: string) =>
+      !p ? undefined : p.startsWith("/") ? p : mediaUrl(p);
     return {
       key: b.data?.key || "custom",
       title: b.data?.title || "",
@@ -70,7 +112,15 @@ async function getLiveAwards() {
       description: b.data?.description || "",
     };
   });
-  return awards as Array<{ key: string; title: string; quote?: string; icon?: string; name: string; portrait?: string; description?: string }>;
+  return awards as Array<{
+    key: string;
+    title: string;
+    quote?: string;
+    icon?: string;
+    name: string;
+    portrait?: string;
+    description?: string;
+  }>;
 }
 
 export default async function Rewards() {
@@ -94,12 +144,17 @@ export default async function Rewards() {
 
       <section className="pt-32 pb-10 px-6">
         <div className="max-w-[1000px] mx-auto text-center">
-          <h1 className="text-white font-bold tracking-wide" style={{ fontSize: "44px", letterSpacing: "0.06em" }}>
+          <h1
+            className="text-white font-bold tracking-wide"
+            style={{ fontSize: "44px", letterSpacing: "0.06em" }}
+          >
             MEET THE BEST OF THE BEST
           </h1>
           <p className="text-gray-300 text-base leading-relaxed mt-6">
-            Every Aurora member walks a path through struggle, discovery, creativity, curiosity, and ultimately, mastery.
-            These five awards represent that journey. They are not merely medals, they are milestones of becoming.
+            Every Aurora member walks a path through struggle, discovery,
+            creativity, curiosity, and ultimately, mastery. These five awards
+            represent that journey. They are not merely medals, they are
+            milestones of becoming.
           </p>
           <div className="mt-12 flex justify-center">
             <div className="w-[140px] h-[160px] rounded-md bg-linear-to-b from-zinc-600 to-zinc-900" />
@@ -119,45 +174,68 @@ export default async function Rewards() {
               <div className="flex justify-center">
                 <div className="h-[2px] w-24 bg-white/30" />
               </div>
-              {/* Large award icon */}
-              {a.icon && (
-                <div className="mt-6 flex justify-center">
-                  {/* Trophy reveal + glow for first award */}
-                  <div className={idx === 0 ? "trophy-reveal" : undefined}>
-                  <Image
-                    src={a.icon}
-                    alt={a.title}
-                    width={520}
-                    height={520}
-                    className="w-[300px] sm:w-[380px] md:w-[460px] lg:w-[520px] h-auto mx-auto block"
-                  />
-                  </div>
-                </div>
-              )}
+              {/* Large award icon moved to horizontal row with portrait */}
               {a.quote && (
-                <p className="text-gray-400 text-sm italic max-w-xl mx-auto mt-6">“{a.quote}”</p>
+                <p className="text-gray-400 text-sm italic max-w-xl mx-auto mt-6">
+                  “{a.quote}”
+                </p>
               )}
               <div className="mt-6 flex justify-center">
-                <div className="h-[3px] w-24 rounded-full" style={{ backgroundColor: GOLD }} />
+                <div
+                  className="h-[3px] w-24 rounded-full"
+                  style={{ backgroundColor: GOLD }}
+                />
               </div>
-              <h2 className="mt-4 font-extrabold uppercase" style={{ color: GOLD, letterSpacing: "0.06em", fontSize: "28px" }}>
+              <h2
+                className="mt-4 font-extrabold uppercase"
+                style={{
+                  color: GOLD,
+                  letterSpacing: "0.06em",
+                  fontSize: "28px",
+                }}
+              >
                 {a.title}
               </h2>
 
-              <div className="mt-8 flex items-end justify-center gap-6">
-                <button className="hidden md:flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: GOLD + "33" }}>
-                  <span className="text-black" style={{ color: GOLD }}>‹</span>
+              <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-10">
+                <button
+                  className="hidden md:flex items-center justify-center w-9 h-9 rounded-full"
+                  style={{ backgroundColor: GOLD + "33" }}
+                >
+                  <span className="text-black" style={{ color: GOLD }}>
+                    ‹
+                  </span>
                 </button>
+                {a.icon && (
+                  <div className={idx === 0 ? "trophy-reveal" : undefined}>
+                    <Image
+                      src={a.icon}
+                      alt={a.title}
+                      width={520}
+                      height={520}
+                      className="w-[360px] sm:w-[360px] md:w-[460px] lg:w-[520px] h-auto block"
+                    />
+                  </div>
+                )}
                 {a.portrait && <PortraitCard src={a.portrait} />}
-                <button className="hidden md:flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: GOLD + "33" }}>
-                  <span className="text-black" style={{ color: GOLD }}>›</span>
+                <button
+                  className="hidden md:flex items-center justify-center w-9 h-9 rounded-full"
+                  style={{ backgroundColor: GOLD + "33" }}
+                >
+                  <span className="text-black" style={{ color: GOLD }}>
+                    ›
+                  </span>
                 </button>
               </div>
 
-              <div className="mt-4 text-white font-semibold tracking-wide">{a.name}</div>
+              <div className="mt-4 text-white font-semibold tracking-wide">
+                {a.name}
+              </div>
 
               <p className="mt-6 text-gray-300 max-w-2xl mx-auto text-base leading-relaxed">
-                {typeof a.description === "string" ? a.description : a.description}
+                {typeof a.description === "string"
+                  ? a.description
+                  : a.description}
               </p>
             </section>
           ))}

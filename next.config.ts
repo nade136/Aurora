@@ -11,9 +11,6 @@ try {
 } catch {}
 
 const nextConfig = {
-  turbopack: {
-    root: __dirname,
-  },
   images: {
     // Allow SVGs and data/blob sources for images used by Next/Image
     dangerouslyAllowSVG: true,
@@ -36,6 +33,9 @@ const nextConfig = {
           ]
         : []),
     ],
+  },
+  turbopack: {
+    root: __dirname,
   },
   async redirects() {
     return [
