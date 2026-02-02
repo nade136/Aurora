@@ -3,11 +3,97 @@
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 function BookSlotInner() {
   const searchParams = useSearchParams();
   const cohort = searchParams.get("cohort") || "";
+  const supabase = useMemo(() => supabaseBrowser(), []);
+  const [price, setPrice] = useState<{ amount: number; currency: string } | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [institution, setInstitution] = useState("");
+  const [currentPosition, setCurrentPosition] = useState("");
+  const [roleCategory, setRoleCategory] = useState("Student/Intern");
+  const [socialUrl, setSocialUrl] = useState("");
+  const [paying, setPaying] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("payment_settings")
+        .select("amount, currency, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      const rows = (data as Array<{ amount?: number; currency?: string }>) || [];
+      const found = rows.find((r) => typeof r?.amount === "number" && !!r?.currency);
+      if (found) {
+        setPrice({ amount: Number(found.amount || 0), currency: String(found.currency) });
+      }
+    };
+    load();
+  }, [supabase]);
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("reference");
+    console.log("[book-slot] reference from URL", ref);
+    if (!ref) return;
+    const verify = async () => {
+      try {
+        const res = await fetch(`/api/payments/verify?reference=${encodeURIComponent(ref)}`, { cache: "no-store" });
+        const json = await res.json();
+        console.log("[book-slot] verify response", { ok: res.ok, status: res.status, json });
+        if (json?.ok && json?.status === "success") {
+          alert("Payment successful. We will contact you via email.");
+        } else {
+          alert("Payment verification failed. If you were charged, please contact support.");
+        }
+      } catch (e) {
+        alert("Could not verify payment. Please contact support if you were charged.");
+      }
+    };
+    verify();
+  }, []);
+
+  const startPayment = async () => {
+    if (!price) { alert("Price not available yet."); return; }
+    if (!email) { alert("Please enter your email."); return; }
+    setPaying(true);
+    try {
+      const res = await fetch("/api/payments/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: price.amount,
+          currency: price.currency || "NGN",
+          email,
+          cohort,
+          first_name: firstName,
+          last_name: lastName,
+          institution,
+          current_position: currentPosition,
+          role_category: roleCategory,
+          social_url: socialUrl,
+          callback_url: `${window.location.origin}/book-slot`,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) { alert(json?.error || "Failed to start payment"); return; }
+      if (json?.authorization_url) {
+        window.location.href = json.authorization_url as string;
+      } else {
+        alert("Could not get authorization URL");
+      }
+    } catch (e) {
+      alert("Could not start payment.");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const priceLabel = price ? `${price.currency} ${Number(price.amount || 0).toLocaleString()}` : "NGN 50,000";
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
@@ -33,18 +119,18 @@ function BookSlotInner() {
       <section className="px-6 pb-24">
         <div className="max-w-5xl mx-auto">
           {/* Form */}
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={(e)=>{e.preventDefault(); startPayment();}}>
             <input type="hidden" name="cohort" value={cohort} />
             {/* Names */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-[#C6FF00] mb-2">First Name</label>
-                <input className="w-full bg-transparent border border-[#C6FF00] rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="" />
+                <input value={firstName} onChange={(e)=>setFirstName(e.target.value)} className="w-full bg-transparent border border-[#C6FF00] rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Last Name</label>
                 <div className="relative">
-                  <input className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="" />
+                  <input value={lastName} onChange={(e)=>setLastName(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="" />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">✎</span>
                 </div>
               </div>
@@ -54,7 +140,7 @@ function BookSlotInner() {
             <div>
               <label className="block text-sm text-gray-400 mb-2">Email</label>
               <div className="relative">
-                <input type="email" className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="john@doe.com" />
+                <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="john@doe.com" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">✉</span>
               </div>
             </div>
@@ -62,21 +148,21 @@ function BookSlotInner() {
             {/* Tertiary Institution */}
             <div>
               <label className="block text-sm text-gray-400 mb-2">Tertiary Institution</label>
-              <input className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="Tertiary Institution attended" />
+              <input value={institution} onChange={(e)=>setInstitution(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="Tertiary Institution attended" />
             </div>
 
             {/* Current/Role */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Current/Role</label>
-                <input className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="Put N/A if currently unemployed" />
+                <input value={currentPosition} onChange={(e)=>setCurrentPosition(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="Put N/A if currently unemployed" />
               </div>
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Role</label>
-                <select className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white outline-none">
-                  <option className="bg-black">Student/Intern</option>
-                  <option className="bg-black">Graduate</option>
-                  <option className="bg-black">Professional</option>
+                <select value={roleCategory} onChange={(e)=>setRoleCategory(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white outline-none">
+                  <option className="bg-black" value="Student/Intern">Student/Intern</option>
+                  <option className="bg-black" value="Graduate">Graduate</option>
+                  <option className="bg-black" value="Professional">Professional</option>
                 </select>
               </div>
             </div>
@@ -84,13 +170,13 @@ function BookSlotInner() {
             {/* Socials */}
             <div>
               <label className="block text-sm text-gray-400 mb-2">Social Media</label>
-              <input className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="LinkedIn URL" />
+              <input value={socialUrl} onChange={(e)=>setSocialUrl(e.target.value)} className="w-full bg-transparent border border-white/20 rounded-md px-4 py-3 text-white placeholder-gray-500 outline-none" placeholder="LinkedIn URL" />
             </div>
 
             {/* Pay Button */}
             <div className="pt-2">
-              <button type="button" className="w-full bg-[#C6FF00] hover:bg-[#b8e600] text-black font-bold py-4 rounded-lg flex items-center justify-center gap-2">
-                <span>Pay $32 Now</span>
+              <button type="submit" disabled={paying} className="w-full bg-[#C6FF00] hover:bg-[#b8e600] disabled:opacity-60 text-black font-bold py-4 rounded-lg flex items-center justify-center gap-2">
+                <span>{paying ? "Redirecting…" : `Pay ${priceLabel} Now`}</span>
                 <span className="w-2 h-2 bg-black rounded-full inline-block" />
               </button>
             </div>
@@ -101,10 +187,10 @@ function BookSlotInner() {
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] items-center gap-6">
               <div>
                 <h3 className="text-white text-2xl font-semibold">Gain Access</h3>
-                <p className="text-gray-400 text-sm mt-1">To have access to this cohort, you pay a fee of $32 or NGN50,000</p>
+                <p className="text-gray-400 text-sm mt-1">To have access to this cohort, you pay a fee of {priceLabel}</p>
               </div>
-              <button type="button" className="bg-[#C6FF00] hover:bg-[#b8e600] text-black font-bold px-8 py-4 rounded-xl flex items-center gap-2 w-full md:w-auto justify-center">
-                Pay $32 Now
+              <button type="button" onClick={startPayment} disabled={paying} className="bg-[#C6FF00] hover:bg-[#b8e600] disabled:opacity-60 text-black font-bold px-8 py-4 rounded-xl flex items-center gap-2 w-full md:w-auto justify-center">
+                {paying ? "Redirecting…" : `Pay ${priceLabel} Now`}
                 <span className="w-2 h-2 bg-black rounded-full inline-block" />
               </button>
             </div>

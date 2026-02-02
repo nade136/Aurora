@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/pages/referrals", label: "Referrals", icon: Link2 },
   { href: "/admin/certificates", label: "Certificates", icon: Award },
   { href: "/admin/media", label: "Media", icon: ImageIcon },
+  { href: "/admin/payment", label: "Payment", icon: FileText },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
