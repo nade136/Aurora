@@ -11,7 +11,7 @@ type Registration = {
   last_name: string | null;
   email: string | null;
   institution: string | null;
-  current_role: string | null;
+  current_position: string | null;
   role_category: string | null;
   social_url: string | null;
 };
@@ -35,6 +35,7 @@ type PaymentSettings = {
   updated_at: string;
   amount: number | null;
   currency: string | null;
+  current_cohort: string | null;
 };
 
 type EmailTemplate = {
@@ -63,8 +64,13 @@ export default function AdminPaymentPage() {
   const supabase = useMemo(() => supabaseBrowser(), []);
 
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
-  const [settingsDraft, setSettingsDraft] = useState<{ amount: string; currency: string }>({ amount: "50000", currency: "NGN" });
+  const [settingsDraft, setSettingsDraft] = useState<{ amount: string; currency: string; current_cohort: string }>({
+    amount: "50000",
+    currency: "NGN",
+    current_cohort: "",
+  });
   const [loadingSettings, setLoadingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
@@ -91,17 +97,33 @@ export default function AdminPaymentPage() {
   useEffect(() => {
     const loadSettings = async () => {
       setLoadingSettings(true);
-      const { data } = await supabase.from("payment_settings").select("id, updated_at, amount, currency").limit(1);
-      const s = (data && data[0]) as PaymentSettings | undefined;
-      if (s) {
-        setSettings(s);
-        setSettingsDraft({ amount: String(s.amount ?? ""), currency: s.currency || "NGN" });
+      setSettingsError(null);
+      try {
+        const resp = await fetch("/api/admin/payment-settings");
+        const payload = await resp.json().catch(() => null);
+        if (!resp.ok) {
+          setSettingsError(payload?.error || "Failed to load settings");
+          setLoadingSettings(false);
+          return;
+        }
+        const s = payload?.data as PaymentSettings | null;
+        if (s) {
+          setSettings(s);
+          setSettingsDraft({
+            amount: String(s.amount ?? ""),
+            currency: s.currency || "NGN",
+            current_cohort: s.current_cohort || "",
+          });
+        }
+      } catch (e: any) {
+        setSettingsError(e?.message || "Failed to load settings");
+      } finally {
+        setLoadingSettings(false);
       }
-      setLoadingSettings(false);
     };
 
     loadSettings();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     const loadPayments = async () => {
@@ -172,6 +194,125 @@ export default function AdminPaymentPage() {
     .reduce((sum, p) => sum + (Number(p.amount || 0)), 0);
   const currency = settings?.currency || payments.find((x) => x.currency)?.currency || "NGN";
 
+  const downloadPaymentsPdf = () => {
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    const rowsHtml = payments
+      .map((p) => {
+        const name = `${p.registration?.first_name || ""} ${p.registration?.last_name || ""}`.trim() || "-";
+        const email = p.registration?.email || "-";
+        const cohort = p.registration?.cohort || "-";
+        const institution = p.registration?.institution || "-";
+        const currentRole = p.registration?.current_position || "-";
+        const roleCategory = p.registration?.role_category || "-";
+        const social = p.registration?.social_url || "-";
+        const amount = `${p.currency || "NGN"} ${Number(p.amount || 0).toLocaleString()}`;
+        const status = p.status || "-";
+        const ref = p.reference || "-";
+        const date = p.created_at ? new Date(p.created_at).toLocaleString() : "-";
+
+        return `
+          <tr>
+            <td>${escapeHtml(date)}</td>
+            <td>${escapeHtml(name)}</td>
+            <td>${escapeHtml(email)}</td>
+            <td>${escapeHtml(cohort)}</td>
+            <td>${escapeHtml(institution)}</td>
+            <td>${escapeHtml(currentRole)}</td>
+            <td>${escapeHtml(roleCategory)}</td>
+            <td>${escapeHtml(social)}</td>
+            <td>${escapeHtml(amount)}</td>
+            <td>${escapeHtml(status)}</td>
+            <td>${escapeHtml(ref)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Payments Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; color: #111; padding: 24px; }
+            h1 { margin: 0 0 8px; font-size: 20px; }
+            .meta { margin-bottom: 16px; font-size: 12px; color: #444; }
+            .summary { margin-bottom: 16px; font-size: 13px; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+            th { background: #f5f5f5; }
+          </style>
+        </head>
+        <body>
+          <h1>Payments Report</h1>
+          <div class="meta">Generated: ${escapeHtml(new Date().toLocaleString())}</div>
+          <div class="summary">
+            <div>Total Paid: ${escapeHtml(`${currency} ${totalPaid.toLocaleString()}`)}</div>
+            <div>Successful Payments: ${escapeHtml(String(payments.filter(p => (p.status || "").toLowerCase() === "success").length))}</div>
+            <div>Total Registrations: ${escapeHtml(String(new Set(payments.map(p => p.registration_id).filter(Boolean)).size))}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Cohort</th>
+                <th>Institution</th>
+                <th>Current Role</th>
+                <th>Role Category</th>
+                <th>Social</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Ref</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml || "<tr><td colspan='11'>No data</td></tr>"}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      document.body.removeChild(iframe);
+      return;
+    }
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const printWin = iframe.contentWindow;
+    if (!printWin) {
+      document.body.removeChild(iframe);
+      return;
+    }
+    printWin.focus();
+    setTimeout(() => {
+      printWin.print();
+      document.body.removeChild(iframe);
+    }, 250);
+  };
+
   const toggleSelect = (regId: string | null) => {
     if (!regId) return;
     setSelection((prev) => (prev.includes(regId) ? prev.filter((x) => x !== regId) : [...prev, regId]));
@@ -185,16 +326,36 @@ export default function AdminPaymentPage() {
 
   const saveSettings = async () => {
     setLoadingSettings(true);
+    setSettingsError(null);
     const amt = Number(String(settingsDraft.amount || "0").replace(/[^0-9.]/g, "")) || 0;
     const cur = (settingsDraft.currency || "NGN").toUpperCase();
-    if (settings?.id) {
-      await supabase.from("payment_settings").update({ amount: amt, currency: cur, updated_at: new Date().toISOString() }).eq("id", settings.id);
-    } else {
-      const { data } = await supabase.from("payment_settings").insert({ amount: amt, currency: cur }).select("id, updated_at, amount, currency").single();
-      if (data) setSettings(data as PaymentSettings);
+    const cohortValue = (settingsDraft.current_cohort || "").trim() || null;
+    try {
+      const resp = await fetch("/api/admin/payment-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amt, currency: cur, current_cohort: cohortValue }),
+      });
+      const payload = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        setSettingsError(payload?.error || "Failed to save settings");
+        setLoadingSettings(false);
+        return;
+      }
+      const updated = payload?.data as PaymentSettings | null;
+      if (updated) {
+        setSettings(updated);
+        setSettingsDraft({
+          amount: String(updated.amount ?? ""),
+          currency: updated.currency || "NGN",
+          current_cohort: updated.current_cohort || "",
+        });
+      }
+    } catch (e: any) {
+      setSettingsError(e?.message || "Failed to save settings");
+    } finally {
+      setLoadingSettings(false);
     }
-    setSettings((s) => (s ? { ...s, amount: amt, currency: cur, updated_at: new Date().toISOString() } : s));
-    setLoadingSettings(false);
   };
 
   const deletePayment = async (id: string) => {
@@ -336,7 +497,10 @@ export default function AdminPaymentPage() {
             <h2 className="text-white font-semibold">Amount & Currency</h2>
             <button onClick={saveSettings} disabled={loadingSettings} className="px-3 py-1.5 rounded bg-[#CCFF00] text-black font-semibold disabled:opacity-60">{loadingSettings?"Saving…":"Save"}</button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {settingsError && (
+            <div className="text-xs text-red-300 mb-3">{settingsError}</div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Amount</label>
               <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={settingsDraft.amount} onChange={(e)=>setSettingsDraft(s=>({...s, amount:e.target.value}))} />
@@ -350,6 +514,15 @@ export default function AdminPaymentPage() {
                 <option value="ZAR">ZAR</option>
               </select>
             </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Cohort</label>
+              <input
+                className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white"
+                value={settingsDraft.current_cohort}
+                onChange={(e)=>setSettingsDraft(s=>({...s, current_cohort:e.target.value}))}
+                placeholder="e.g., core-3"
+              />
+            </div>
             <div className="text-gray-400 text-xs flex items-end">This price will be used when we add Paystack.</div>
           </div>
         </div>
@@ -359,7 +532,15 @@ export default function AdminPaymentPage() {
           <div className="flex flex-col gap-3 mb-3">
             <div className="flex items-center justify-between">
               <h2 className="text-white font-semibold">Payments</h2>
-              <div className="text-xs text-gray-400">Showing latest {payments.length}</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={downloadPaymentsPdf}
+                  className="text-xs px-3 py-1.5 rounded bg-white/10 border border-white/10 text-white hover:bg-white/15"
+                >
+                  Download PDF
+                </button>
+                <div className="text-xs text-gray-400">Showing latest {payments.length}</div>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr_auto] items-end gap-3">
               <div>
@@ -404,6 +585,10 @@ export default function AdminPaymentPage() {
                   <th className="px-2 py-2">Name</th>
                   <th className="px-2 py-2">Email</th>
                   <th className="px-2 py-2">Cohort</th>
+                  <th className="px-2 py-2">Institution</th>
+                  <th className="px-2 py-2">Current Role</th>
+                  <th className="px-2 py-2">Role Category</th>
+                  <th className="px-2 py-2">Social</th>
                   <th className="px-2 py-2">Amount</th>
                   <th className="px-2 py-2">Status</th>
                   <th className="px-2 py-2">Ref</th>
@@ -425,6 +610,23 @@ export default function AdminPaymentPage() {
                       <td className="px-2 py-2">{`${p.registration?.first_name || ""} ${p.registration?.last_name || ""}`.trim() || "-"}</td>
                       <td className="px-2 py-2">{p.registration?.email || "-"}</td>
                       <td className="px-2 py-2">{p.registration?.cohort || "-"}</td>
+                      <td className="px-2 py-2">{p.registration?.institution || "-"}</td>
+                      <td className="px-2 py-2">{p.registration?.current_position || "-"}</td>
+                      <td className="px-2 py-2">{p.registration?.role_category || "-"}</td>
+                      <td className="px-2 py-2">
+                        {p.registration?.social_url ? (
+                          <a
+                            href={p.registration.social_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#CCFF00] hover:underline"
+                          >
+                            View
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
                       <td className="px-2 py-2">{p.currency || "NGN"} {Number(p.amount || 0).toLocaleString()}</td>
                       <td className="px-2 py-2 capitalize">{p.status || "-"}</td>
                       <td className="px-2 py-2">{p.reference || "-"}</td>

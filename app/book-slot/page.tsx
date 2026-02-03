@@ -11,6 +11,7 @@ function BookSlotInner() {
   const cohort = searchParams.get("cohort") || "";
   const supabase = useMemo(() => supabaseBrowser(), []);
   const [price, setPrice] = useState<{ amount: number; currency: string } | null>(null);
+  const [activeCohort, setActiveCohort] = useState<string>("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,13 +25,14 @@ function BookSlotInner() {
     const load = async () => {
       const { data } = await supabase
         .from("payment_settings")
-        .select("amount, currency, updated_at")
+        .select("amount, currency, current_cohort, updated_at")
         .order("updated_at", { ascending: false })
         .limit(5);
-      const rows = (data as Array<{ amount?: number; currency?: string }>) || [];
+      const rows = (data as Array<{ amount?: number; currency?: string; current_cohort?: string | null }>) || [];
       const found = rows.find((r) => typeof r?.amount === "number" && !!r?.currency);
       if (found) {
         setPrice({ amount: Number(found.amount || 0), currency: String(found.currency) });
+        setActiveCohort(String(found.current_cohort || ""));
       }
     };
     load();
@@ -50,7 +52,7 @@ function BookSlotInner() {
         } else {
           alert("Payment verification failed. If you were charged, please contact support.");
         }
-      } catch (e) {
+      } catch {
         alert("Could not verify payment. Please contact support if you were charged.");
       }
     };
@@ -62,6 +64,7 @@ function BookSlotInner() {
     if (!email) { alert("Please enter your email."); return; }
     setPaying(true);
     try {
+      const cohortValue = (activeCohort || cohort || "").trim() || null;
       const res = await fetch("/api/payments/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -69,7 +72,7 @@ function BookSlotInner() {
           amount: price.amount,
           currency: price.currency || "NGN",
           email,
-          cohort,
+          cohort: cohortValue,
           first_name: firstName,
           last_name: lastName,
           institution,
@@ -86,7 +89,7 @@ function BookSlotInner() {
       } else {
         alert("Could not get authorization URL");
       }
-    } catch (e) {
+    } catch {
       alert("Could not start payment.");
     } finally {
       setPaying(false);
