@@ -67,6 +67,6 @@ export const config = {
     "/admin/:path*",
     "/auth/:path*",
     // Apply middleware to all routes to support ADMIN_ONLY redirects, excluding common static assets
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)",
   ],
 };
