@@ -22,9 +22,9 @@ export default function Navbar() {
   return (
     <nav className="fixed top-2 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800/20 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl w-[calc(100%-1rem)] sm:w-auto">
       <div className="px-4 sm:px-6 md:px-8 py-4">
-        <div className="flex items-center justify-between gap-4 md:gap-16 md:min-w-[800px]">
+        <div className="flex items-center justify-between gap-4 md:gap-16 md:min-w-[800px] w-full">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-1">
             <div className="relative w-14 h-14 flex items-center justify-center">
               <Image
                 src="/Image%20/Vector%204.svg"
@@ -37,13 +37,15 @@ export default function Navbar() {
           </div>
 
           {/* Navigation Links - Desktop */}
-          <div className="hidden md:flex items-center space-x-12 whitespace-nowrap">
+          <div className="hidden md:flex items-center justify-center space-x-12 whitespace-nowrap flex-1">
             <Link href="/" className={linkClass("/")}>
               HOME
             </Link>
+            {/*
             <Link href="/workshop" className={linkClass("/workshop")}>
               WORKSHOP
             </Link>
+            */}
             <Link href="/reviews" className={linkClass("/reviews")}>
               REVIEWS
             </Link>
@@ -56,7 +58,7 @@ export default function Navbar() {
           </div>
 
           {/* Right side: CTA (desktop) + Hamburger (mobile) */}
-          <div className="flex items-center whitespace-nowrap">
+          <div className="flex items-center whitespace-nowrap flex-1 justify-end">
             <Link href="/book-slot" className="hidden md:inline-flex bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2.5 rounded-lg items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/20">
               <span className="text-sm tracking-wide">Book Slot</span>
               <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
@@ -86,6 +88,7 @@ export default function Navbar() {
               >
                 HOME
               </Link>
+              {/*
               <Link
                 href="/workshop"
                 className={`px-3 py-2 rounded-md ${linkClass("/workshop")} hover:bg-white/5`}
@@ -93,6 +96,7 @@ export default function Navbar() {
               >
                 WORKSHOP
               </Link>
+              */}
               <Link
                 href="/reviews"
                 className={`px-3 py-2 rounded-md ${linkClass("/reviews")} hover:bg-white/5`}

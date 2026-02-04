@@ -113,7 +113,14 @@ function BookSlotInner() {
           )}
 
           <div className="mt-6 flex items-center justify-center gap-3">
-            <button className="bg-[#C6FF00] text-black font-semibold px-5 py-2 rounded-lg hover:bg-[#b8e600]">Learn More</button>
+            <a
+              href="https://bakel-bakel.github.io/aurora-robotics-core-2.0-website/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#C6FF00] hover:bg-[#b8e600] text-black font-semibold px-5 py-2 rounded-lg"
+            >
+              Learn More
+            </a>
             <a
               href="https://www.linkedin.com/in/bakel-bakel-6341a7150/"
               target="_blank"
