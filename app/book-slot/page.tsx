@@ -114,7 +114,14 @@ function BookSlotInner() {
 
           <div className="mt-6 flex items-center justify-center gap-3">
             <button className="bg-[#C6FF00] text-black font-semibold px-5 py-2 rounded-lg hover:bg-[#b8e600]">Learn More</button>
-            <button className="bg-transparent border border-white/30 text-white font-semibold px-5 py-2 rounded-lg hover:bg-white/5">Meet the Tutor</button>
+            <a
+              href="https://www.linkedin.com/in/bakel-bakel-6341a7150/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-transparent border border-white/30 text-white font-semibold px-5 py-2 rounded-lg hover:bg-white/5"
+            >
+              Meet the Tutor
+            </a>
           </div>
         </div>
       </section>

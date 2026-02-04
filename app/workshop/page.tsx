@@ -1,4 +1,3 @@
-import TeamSection from "@/components/homepage/TeamSection";
 import Navbar from "@/components/Navbar";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { WorkshopPageContent } from "@/lib/schemas/home";
@@ -110,7 +109,6 @@ export default async function Workshop() {
           ))}
         </div>
       </div>
-      <TeamSection />
     </>
   );
 }
