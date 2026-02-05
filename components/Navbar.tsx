@@ -38,17 +38,17 @@ export default function Navbar() {
 
           {/* Navigation Links - Desktop */}
           <div className="hidden md:flex items-center justify-center space-x-12 whitespace-nowrap flex-1">
-            <Link href="/" className={linkClass("/")}>
+            {/* <Link href="/" className={linkClass("/")}>
               HOME
-            </Link>
+            </Link> */}
             {/*
             <Link href="/workshop" className={linkClass("/workshop")}>
               WORKSHOP
             </Link>
             */}
-            <Link href="/reviews" className={linkClass("/reviews")}>
+            {/* <Link href="/reviews" className={linkClass("/reviews")}>
               REVIEWS
-            </Link>
+            </Link> */}
             {/* <Link href="/rewards" className={linkClass("/rewards")}>
               AWARDS
             </Link> */}
@@ -59,7 +59,10 @@ export default function Navbar() {
 
           {/* Right side: CTA (desktop) + Hamburger (mobile) */}
           <div className="flex items-center whitespace-nowrap flex-1 justify-end">
-            <Link href="/book-slot" className="hidden md:inline-flex bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2.5 rounded-lg items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/20">
+            <Link
+              href="/book-slot"
+              className="hidden md:inline-flex bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-2.5 rounded-lg items-center gap-2 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/20"
+            >
               <span className="text-sm tracking-wide">Book Slot</span>
               <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center">
                 <ArrowRight className="w-3 h-3 text-[#CCFF00]" />
@@ -81,13 +84,13 @@ export default function Navbar() {
         <div className="md:hidden px-4 pb-4">
           <div className="rounded-xl border border-white/10 bg-gray-900/70 backdrop-blur-md p-4">
             <nav className="flex flex-col">
-              <Link
+              {/* <Link
                 href="/"
                 className={`px-3 py-2 rounded-md ${linkClass("/")} hover:bg-white/5`}
                 onClick={() => setOpen(false)}
               >
                 HOME
-              </Link>
+              </Link> */}
               {/*
               <Link
                 href="/workshop"
@@ -97,13 +100,13 @@ export default function Navbar() {
                 WORKSHOP
               </Link>
               */}
-              <Link
+              {/* <Link
                 href="/reviews"
                 className={`px-3 py-2 rounded-md ${linkClass("/reviews")} hover:bg-white/5`}
                 onClick={() => setOpen(false)}
               >
                 REVIEWS
-              </Link>
+              </Link> */}
               <Link
                 href="/internships"
                 className={`px-3 py-2 rounded-md ${linkClass("/internships")} hover:bg-white/5`}
