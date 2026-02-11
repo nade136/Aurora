@@ -59,6 +59,23 @@ function BookSlotInner() {
     verify();
   }, []);
 
+  useEffect(() => {
+    const url = window.location.href;
+    window.history.replaceState({ noBack: true }, "", url);
+    window.history.pushState({ noBack: true }, "", url);
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state?.noBack) {
+        window.history.pushState({ noBack: true }, "", url);
+        return;
+      }
+      window.history.pushState({ noBack: true }, "", url);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const startPayment = async () => {
     if (!price) { alert("Price not available yet."); return; }
     if (!email) { alert("Please enter your email."); return; }

@@ -18,6 +18,10 @@ export async function middleware(req: NextRequest) {
     truthy(process.env.ADMIN_ONLY) ||
     truthy(process.env.NEXT_PUBLIC_ADMIN_ONLY);
   const path = req.nextUrl.pathname;
+  if (path === "/") {
+    const url = new URL("/book-slot", req.url);
+    return NextResponse.redirect(url);
+  }
   if (
     !adminEnabled &&
     (path.startsWith("/admin") || path.startsWith("/auth"))
@@ -80,6 +84,6 @@ export const config = {
     "/admin/:path*",
     "/auth/:path*",
     // Apply middleware to all routes to support ADMIN_ONLY redirects, excluding common static assets
-    "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)",
   ],
 };

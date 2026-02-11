@@ -125,6 +125,29 @@ export default function AdminPaymentPage() {
     loadSettings();
   }, []);
 
+  const triggerDownload = async (url: string, filename: string) => {
+    const resp = await fetch(url, { cache: "no-store" });
+    if (!resp.ok) return;
+    const blob = await resp.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  const downloadPaymentsCsv = async () => {
+    const base = `payments_${new Date().toISOString().slice(0,10)}`;
+    await triggerDownload(`/api/admin/payments/export?format=csv`, `${base}.csv`);
+  };
+
+  const downloadPaymentsXlsx = async () => {
+    const base = `payments_${new Date().toISOString().slice(0,10)}`;
+    await triggerDownload(`/api/admin/payments/export?format=xlsx`, `${base}.xlsx`);
+  };
+
   useEffect(() => {
     const loadPayments = async () => {
       setPaymentsLoading(true);
@@ -533,6 +556,18 @@ export default function AdminPaymentPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-white font-semibold">Payments</h2>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={downloadPaymentsCsv}
+                  className="text-xs px-3 py-1.5 rounded bg-white/10 border border-white/10 text-white hover:bg-white/15"
+                >
+                  Export CSV
+                </button>
+                <button
+                  onClick={downloadPaymentsXlsx}
+                  className="text-xs px-3 py-1.5 rounded bg-white/10 border border-white/10 text-white hover:bg-white/15"
+                >
+                  Export Excel
+                </button>
                 <button
                   onClick={downloadPaymentsPdf}
                   className="text-xs px-3 py-1.5 rounded bg-white/10 border border-white/10 text-white hover:bg-white/15"

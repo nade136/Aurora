@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 
-const TARGET = "https://bakel-bakel.github.io/aurora-robotics-core-2.0-website/";
+const TARGET =
+  "https://bakel-bakel.github.io/aurora-robotics-core-2.0-website/";
 
 export default function Core2RedirectPage() {
   useEffect(() => {
