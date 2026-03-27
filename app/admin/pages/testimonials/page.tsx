@@ -5,6 +5,9 @@ import { Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { mediaPublicUrl } from "@/utils/media";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
 // DB block type shape used elsewhere in the app
 type Block<T> = { id: string; order: number; type: string; data: T };
@@ -16,6 +19,7 @@ export default function TestimonialsAdminPage() {
   type Item = {
     id: string;
     name: string;
+    nameStyle?: TextStyle;
     size: Size;
     mediaType: MediaType;
     mediaUrl: string; // main big media
@@ -28,6 +32,7 @@ export default function TestimonialsAdminPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{
     name: string;
+    nameStyle?: TextStyle;
     size: Size;
     mediaType: MediaType;
     mediaUrl: string;
@@ -96,6 +101,7 @@ export default function TestimonialsAdminPage() {
       const mapped: Item[] = (blks as Block<any>[] | null || []).map((b) => ({
         id: b.id,
         name: b.data?.name || "",
+        nameStyle: b.data?.nameStyle || {},
         size: (b.data?.size as Size) || "normal",
         mediaType: (b.data?.mediaType as MediaType) || (b.data?.media?.type as MediaType) || "image",
         mediaUrl: b.data?.mediaUrl || b.data?.media?.url || "",
@@ -146,6 +152,7 @@ export default function TestimonialsAdminPage() {
     if (!t) return;
     setDraft({
       name: t.name,
+      nameStyle: t.nameStyle || {},
       size: t.size,
       mediaType: t.mediaType,
       mediaUrl: t.mediaUrl,
@@ -164,6 +171,7 @@ export default function TestimonialsAdminPage() {
     const isSeed = openId.startsWith("seed-");
     const payload = {
       name: draft.name,
+      nameStyle: draft.nameStyle || {},
       size: draft.size,
       mediaType: draft.mediaType,
       mediaUrl: draft.mediaUrl,
@@ -295,7 +303,7 @@ export default function TestimonialsAdminPage() {
                   )}
 
                   <div className="absolute bottom-3 left-3 right-3 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center overflow-hidden shrink-0">
                       {t.avatarUrl ? (
                         <Image
                           src={getDisplayUrl(t.avatarUrl)}
@@ -313,7 +321,12 @@ export default function TestimonialsAdminPage() {
                       )}
                     </div>
                     <span className="text-white text-xs font-medium truncate">
-                      {t.name}
+                      <span
+                        className={`${t.nameStyle?.bold ? "font-bold" : ""} ${t.nameStyle?.italic ? "italic" : ""}`}
+                        style={{ color: t.nameStyle?.color || undefined, fontFamily: t.nameStyle?.fontFamily || undefined, fontSize: t.nameStyle?.fontSize || undefined }}
+                      >
+                        {t.name}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -342,6 +355,11 @@ export default function TestimonialsAdminPage() {
                   }
                   className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white text-sm"
                   placeholder="Full name"
+                />
+                <TextStyleControls
+                  value={draft.nameStyle}
+                  onChange={(next) => setDraft((d) => (d ? { ...d, nameStyle: next } : d))}
+                  defaultColor="#ffffff"
                 />
               </div>
 

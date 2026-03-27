@@ -1,4 +1,14 @@
+"use client";
+
+import { useState } from "react";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
+
 export default function SettingsPage() {
+  const [siteName, setSiteName] = useState("Aurora");
+  const [siteNameStyle, setSiteNameStyle] = useState<TextStyle>({});
+
   return (
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-xl font-semibold">Settings</h1>
@@ -7,7 +17,14 @@ export default function SettingsPage() {
         <div className="font-medium">Site</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="text-sm text-gray-300">Site name
-            <input className="block mt-1 w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm" placeholder="Aurora" />
+            <input
+              className="block mt-1 w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm"
+              value={siteName}
+              onChange={(e) => setSiteName(e.target.value)}
+              placeholder="Aurora"
+              style={{ color: siteNameStyle.color, fontFamily: siteNameStyle.fontFamily, fontSize: siteNameStyle.fontSize, fontWeight: siteNameStyle.bold ? 700 : 400, fontStyle: siteNameStyle.italic ? "italic" : "normal" }}
+            />
+            <TextStyleControls value={siteNameStyle} onChange={setSiteNameStyle} defaultColor="#ffffff" />
           </label>
           <label className="text-sm text-gray-300">Primary color
             <input type="color" defaultValue="#CCFF00" className="block mt-1 w-20 h-9 bg-transparent border border-white/10 rounded-md" />

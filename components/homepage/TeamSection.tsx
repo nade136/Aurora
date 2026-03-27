@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import type { TeamBlock } from "@/lib/schemas/home";
 
 const teamMembers = [
   {
@@ -24,7 +25,23 @@ const teamMembers = [
   },
 ];
 
-export default function TeamSection() {
+type Props = {
+  team?: TeamBlock;
+};
+
+export default function TeamSection({ team }: Props) {
+  const title = team?.title || "Team Aurora";
+  const subtitle = team?.subtitle || "Meet the Team behind the vision at Aurora";
+  const members =
+    team?.members && team.members.length > 0
+      ? team.members.map((m, i) => ({
+          name: m.name || `Team Member ${i + 1}`,
+          role: m.role || "Team Member",
+          image: m.photo || "/Image%20/Image_fx%20(10)%201.svg",
+          isHighlighted: i === 2,
+        }))
+      : teamMembers;
+
   return (
     <section className="relative bg-[#000000] py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
@@ -43,16 +60,16 @@ export default function TeamSection() {
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#ccff02] mb-4">
-            Team Aurora
+            {title}
           </h2>
           <p className="text-gray-500 text-base sm:text-lg">
-            Meet the Team behind the vision at Aurora
+            {subtitle}
           </p>
         </motion.div>
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {teamMembers.map((member, index) => (
+          {members.map((member, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -75,10 +92,10 @@ export default function TeamSection() {
 
               {/* Info */}
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-black mb-2">
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
                   {member.name}
                 </h3>
-                <p className="text-gray-500 text-sm sm:text-base mb-3">
+                <p className="text-gray-300 text-sm sm:text-base mb-3">
                   {member.role}
                 </p>
 

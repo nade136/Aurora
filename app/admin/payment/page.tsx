@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
 type Registration = {
   id: string;
@@ -93,6 +96,11 @@ export default function AdminPaymentPage() {
   const [viewLog, setViewLog] = useState<EmailLog | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const [viewTemplate, setViewTemplate] = useState<EmailTemplate | null>(null);
+  const [inputStyles, setInputStyles] = useState<Record<string, TextStyle>>({});
+  const inputStyle = (k: string) => {
+    const s = inputStyles[k] || {};
+    return { color: s.color, fontFamily: s.fontFamily, fontSize: s.fontSize, fontWeight: s.bold ? 700 : 400, fontStyle: s.italic ? "italic" : "normal" };
+  };
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -526,7 +534,8 @@ export default function AdminPaymentPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Amount</label>
-              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={settingsDraft.amount} onChange={(e)=>setSettingsDraft(s=>({...s, amount:e.target.value}))} />
+              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={settingsDraft.amount} onChange={(e)=>setSettingsDraft(s=>({...s, amount:e.target.value}))} style={inputStyle("amount")} />
+              <TextStyleControls value={inputStyles.amount} onChange={(next)=>setInputStyles(s=>({...s, amount: next}))} defaultColor="#ffffff" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Currency</label>
@@ -544,7 +553,9 @@ export default function AdminPaymentPage() {
                 value={settingsDraft.current_cohort}
                 onChange={(e)=>setSettingsDraft(s=>({...s, current_cohort:e.target.value}))}
                 placeholder="e.g., core-3"
+                style={inputStyle("cohort")}
               />
+              <TextStyleControls value={inputStyles.cohort} onChange={(next)=>setInputStyles(s=>({...s, cohort: next}))} defaultColor="#ffffff" />
             </div>
             <div className="text-gray-400 text-xs flex items-end">This price will be used when we add Paystack.</div>
           </div>
@@ -589,7 +600,8 @@ export default function AdminPaymentPage() {
               {recipientMode === "one" && (
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Email</label>
-                  <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={singleEmail} onChange={(e)=>setSingleEmail(e.target.value)} placeholder="recipient@example.com" />
+                  <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={singleEmail} onChange={(e)=>setSingleEmail(e.target.value)} placeholder="recipient@example.com" style={inputStyle("singleEmail")} />
+                  <TextStyleControls value={inputStyles.singleEmail} onChange={(next)=>setInputStyles(s=>({...s, singleEmail: next}))} defaultColor="#ffffff" />
                 </div>
               )}
               <div>
@@ -690,11 +702,13 @@ export default function AdminPaymentPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Name</label>
-              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.name} onChange={(e)=>setNewTemplate(s=>({...s, name:e.target.value}))} placeholder="registration_success" />
+              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.name} onChange={(e)=>setNewTemplate(s=>({...s, name:e.target.value}))} placeholder="registration_success" style={inputStyle("templateName")} />
+              <TextStyleControls value={inputStyles.templateName} onChange={(next)=>setInputStyles(s=>({...s, templateName: next}))} defaultColor="#ffffff" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Subject</label>
-              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.subject} onChange={(e)=>setNewTemplate(s=>({...s, subject:e.target.value}))} placeholder="Registration Successful" />
+              <input className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.subject} onChange={(e)=>setNewTemplate(s=>({...s, subject:e.target.value}))} placeholder="Registration Successful" style={inputStyle("templateSubject")} />
+              <TextStyleControls value={inputStyles.templateSubject} onChange={(next)=>setInputStyles(s=>({...s, templateSubject: next}))} defaultColor="#ffffff" />
             </div>
             <div className="flex items-end">
               <button onClick={createTemplate} className="px-3 py-2 rounded bg-white/10 border border-white/10 text-white">Add Template</button>
@@ -702,7 +716,8 @@ export default function AdminPaymentPage() {
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">Body (HTML)</label>
-            <textarea className="w-full min-h-[120px] px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.body_html} onChange={(e)=>setNewTemplate(s=>({...s, body_html:e.target.value}))} placeholder="<p>Thank you for registering...</p>" />
+            <textarea className="w-full min-h-[120px] px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={newTemplate.body_html} onChange={(e)=>setNewTemplate(s=>({...s, body_html:e.target.value}))} placeholder="<p>Thank you for registering...</p>" style={inputStyle("templateBody")} />
+            <TextStyleControls value={inputStyles.templateBody} onChange={(next)=>setInputStyles(s=>({...s, templateBody: next}))} defaultColor="#ffffff" />
           </div>
           <div className="mt-4">
             <div className="text-xs text-gray-400 mb-1">Existing Templates</div>

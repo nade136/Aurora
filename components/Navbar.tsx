@@ -24,7 +24,11 @@ export default function Navbar() {
       <div className="px-4 sm:px-6 md:px-8 py-4">
         <div className="flex items-center justify-between gap-4 md:gap-16 md:min-w-[800px] w-full">
           {/* Logo */}
-          <div className="flex items-center flex-1">
+          <Link
+            href="/"
+            aria-label="Go to homepage"
+            className="flex items-center flex-1"
+          >
             <div className="relative w-14 h-14 flex items-center justify-center">
               <Image
                 src="/Image%20/Vector%204.svg"
@@ -34,26 +38,29 @@ export default function Navbar() {
                 priority
               />
             </div>
-          </div>
+          </Link>
 
           {/* Navigation Links - Desktop */}
           <div className="hidden md:flex items-center justify-center space-x-12 whitespace-nowrap flex-1">
             {/* <Link href="/" className={linkClass("/")}>
               HOME
             </Link> */}
-            {/*
+
             <Link href="/workshop" className={linkClass("/workshop")}>
               WORKSHOP
             </Link>
-            */}
-            {/* <Link href="/reviews" className={linkClass("/reviews")}>
+
+            <Link href="/reviews" className={linkClass("/reviews")}>
               REVIEWS
-            </Link> */}
+            </Link>
             {/* <Link href="/rewards" className={linkClass("/rewards")}>
               AWARDS
             </Link> */}
             <Link href="/internships" className={linkClass("/internships")}>
               INTERNSHIPS
+            </Link>
+            <Link href="/support" className={linkClass("/support")}>
+              SUPPORT
             </Link>
           </div>
 
@@ -113,6 +120,13 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
               >
                 INTERNSHIPS
+              </Link>
+              <Link
+                href="/support"
+                className={`px-3 py-2 rounded-md ${linkClass("/support")} hover:bg-white/5`}
+                onClick={() => setOpen(false)}
+              >
+                SUPPORT
               </Link>
               {/* <Link
                 href="/rewards"

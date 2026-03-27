@@ -9,6 +9,8 @@ import TestimonialsSectionServer from "@/components/TestimonialsSectionServer";
 import StatsSection from "@/components/StatsSection";
 import FAQSection from "@/components/homepage/FAQSection";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getAdminSupabase } from "@/lib/supabase/admin";
+import { defaultHomeContent, type HomeContent } from "@/lib/schemas/home";
 
 type SocialPlatform = 'x' | 'linkedin' | 'instagram' | 'facebook' | 'whatsapp';
 type Review = { 
@@ -18,6 +20,9 @@ type Review = {
   author: string; 
   subtitle?: string; 
   avatar?: string; 
+  textStyle?: TextStyle;
+  authorStyle?: TextStyle;
+  subtitleStyle?: TextStyle;
   size?: "large" | "normal"; 
   social?: { 
     platform?: SocialPlatform; 
@@ -28,38 +33,172 @@ type Review = {
   } 
 };
 
-const mediaUrl = (path?: string | null) => (path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${path}` : undefined);
+type StatsItem = {
+  label: string;
+  value: string;
+  subtext?: string;
+  valueStyle?: TextStyle;
+  labelStyle?: TextStyle;
+  subtextStyle?: TextStyle;
+};
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
+type StatsHeader = {
+  badge?: string;
+  titleLine1?: string;
+  titleLine2?: string;
+  badgeStyle?: TextStyle;
+  titleLine1Style?: TextStyle;
+  titleLine2Style?: TextStyle;
+};
+type BlockRow = { type?: string; data?: Record<string, unknown>; order?: number };
+type SnapshotSection = { key: string; blocks: BlockRow[] };
 
-async function getReviews(): Promise<Review[]> {
-  const supabase = await supabaseServer();
-  // Read from published snapshot like Rewards
-  const { data: snap } = await supabase
-    .from("published_snapshots")
-    .select("data")
-    .eq("slug", "reviews")
-    .maybeSingle();
-  const sections = (snap as any)?.data?.sections as Array<{ key: string; blocks: any[] }> | undefined;
-  const grid = sections?.find((s) => s.key === "reviews_grid");
-  const blocks = grid?.blocks || [];
+const mediaUrl = (path?: string | null) => (path ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${path}` : undefined);
+const asString = (v: unknown, fallback = ""): string => (typeof v === "string" ? v : fallback);
+const asTextStyle = (v: unknown): TextStyle => {
+  if (!v || typeof v !== "object") return {};
+  const vv = v as Record<string, unknown>;
+  return {
+    bold: Boolean(vv.bold),
+    italic: Boolean(vv.italic),
+    color: typeof vv.color === "string" ? vv.color : undefined,
+    fontFamily: typeof vv.fontFamily === "string" ? vv.fontFamily : undefined,
+    fontSize: typeof vv.fontSize === "string" ? vv.fontSize : undefined,
+  };
+};
+const asSocial = (v: unknown): Review["social"] => {
+  if (!v || typeof v !== "object") return undefined;
+  const vv = v as Record<string, unknown>;
+  return {
+    platform: vv.platform as SocialPlatform | undefined,
+    url: asString(vv.url, undefined as unknown as string),
+    x: asString(vv.x, undefined as unknown as string),
+    linkedin: asString(vv.linkedin, undefined as unknown as string),
+  };
+};
+
+async function getReviewsPageData(): Promise<{
+  reviews: Review[];
+  statsItems: StatsItem[];
+  statsHeader: StatsHeader;
+}> {
+  const admin = getAdminSupabase();
+  // Read current live blocks so admin edits reflect immediately.
+  const { data: page } = await admin.from("pages").select("id").eq("slug", "reviews").maybeSingle();
+
+  let reviewBlocks: BlockRow[] = [];
+  let statsBlocks: BlockRow[] = [];
+
+  if (page?.id) {
+    const { data: sections } = await admin
+      .from("sections")
+      .select("id, key")
+      .eq("page_id", page.id);
+
+    const gridSection = sections?.find((s) => s.key === "reviews_grid");
+    const statsSection = sections?.find((s) => s.key === "stats");
+
+    if (gridSection?.id) {
+      const { data: gridBlocks } = await admin
+        .from("blocks")
+        .select("type, data, order")
+        .eq("section_id", gridSection.id)
+        .order("order");
+      reviewBlocks = gridBlocks || [];
+    }
+
+    if (statsSection?.id) {
+      const { data: statsSectionBlocks } = await admin
+        .from("blocks")
+        .select("type, data, order")
+        .eq("section_id", statsSection.id)
+        .order("order");
+      statsBlocks = statsSectionBlocks || [];
+    }
+  }
+
+  // Fallback to published snapshot only if live blocks are unavailable.
+  if (!reviewBlocks.length && !statsBlocks.length) {
+    const { data: snap } = await admin
+      .from("published_snapshots")
+      .select("data")
+      .eq("slug", "reviews")
+      .maybeSingle();
+    const snapData = snap?.data as { sections?: SnapshotSection[] } | null;
+    const sections = snapData?.sections;
+    const grid = sections?.find((s) => s.key === "reviews_grid");
+    const stats = sections?.find((s) => s.key === "stats");
+    reviewBlocks = grid?.blocks || [];
+    statsBlocks = stats?.blocks || [];
+  }
+
   const resolve = (p?: string) => (!p ? undefined : p.startsWith("/") ? p : mediaUrl(p));
-  return blocks
+  const reviews = reviewBlocks
     .filter((b) => b.type === "reviews_card")
     .map((b, i) => ({
       id: String(i),
-      icon: b.data?.icon,
-      text: b.data?.text || "",
-      author: b.data?.author || "",
-      subtitle: b.data?.subtitle || "",
-      avatar: resolve(b.data?.avatar),
-      size: (b.data?.size as any) || "large",
-      social: b.data?.social,
+      icon: asString(b.data?.icon, ""),
+      text: asString(b.data?.text, ""),
+      author: asString(b.data?.author, ""),
+      subtitle: asString(b.data?.subtitle, ""),
+      avatar: resolve(asString(b.data?.avatar, "")),
+      textStyle: asTextStyle(b.data?.textStyle),
+      authorStyle: asTextStyle(b.data?.authorStyle),
+      subtitleStyle: asTextStyle(b.data?.subtitleStyle),
+      size: ((b.data?.size as "large" | "normal" | undefined) || "large"),
+      social: asSocial(b.data?.social),
     }));
+
+  const rawStats = statsBlocks
+    .filter((b) => b.type === "stat")
+    .map((b) => ({
+      label: String(b.data?.label || ""),
+      value: String(b.data?.value || ""),
+      subtext: String(b.data?.subtext || ""),
+      valueStyle: asTextStyle(b.data?.valueStyle),
+      labelStyle: asTextStyle(b.data?.labelStyle),
+      subtextStyle: asTextStyle(b.data?.subtextStyle),
+    }))
+    .slice(0, 3);
+  const defaultStats: StatsItem[] = [
+    { label: "Universities Reached", value: "12", subtext: "" },
+    { label: "Cohort 1 Students", value: "50+", subtext: "" },
+    { label: "Projects Delivered", value: "15", subtext: "" },
+  ];
+  const statsItems = rawStats.length === 3
+    ? rawStats
+    : [...rawStats, ...defaultStats.slice(rawStats.length)].slice(0, 3);
+
+  const statsHeaderBlock = statsBlocks.find((b) => b.type === "stats_header");
+  const statsHeader: StatsHeader = {
+    badge: asString(statsHeaderBlock?.data?.badge, "STATISTICS"),
+    titleLine1: asString(statsHeaderBlock?.data?.titleLine1, "WE HAVE THE"),
+    titleLine2: asString(statsHeaderBlock?.data?.titleLine2, "NUMBERS"),
+    badgeStyle: statsHeaderBlock?.data?.badgeStyle || {},
+    titleLine1Style: statsHeaderBlock?.data?.titleLine1Style || {},
+    titleLine2Style: statsHeaderBlock?.data?.titleLine2Style || {},
+  };
+
+  return { reviews, statsItems, statsHeader };
 }
 
 export default async function Reviews() {
-  const dbList = await getReviews();
+  const supabase = await supabaseServer();
+  const [reviewsData, homePage] = await Promise.all([
+    getReviewsPageData(),
+    supabase
+      .from("pages")
+      .select("content_json")
+      .eq("slug", "home")
+      .maybeSingle(),
+  ]);
+
+  const homeContent: HomeContent =
+    (homePage.data?.content_json as HomeContent | undefined) ??
+    defaultHomeContent;
+
   // Only use reviews from the database, no default reviews
-  const list = dbList;
+  const list = reviewsData.reviews;
   const getIcon = (iconType: string, social?: { platform?: SocialPlatform; url?: string; x?: string; linkedin?: string }) => {
     // If new social link structure exists, use that
     if (social?.platform && social.url) {
@@ -189,7 +328,10 @@ export default async function Reviews() {
                 </div>
 
                 {/* Review Text */}
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p
+                  className={`text-gray-300 text-sm leading-relaxed ${review.textStyle?.bold ? "font-bold" : ""} ${review.textStyle?.italic ? "italic" : ""}`}
+                  style={{ color: review.textStyle?.color || undefined, fontFamily: review.textStyle?.fontFamily || undefined, fontSize: review.textStyle?.fontSize || undefined }}
+                >
                   {review.text}
                 </p>
 
@@ -208,10 +350,18 @@ export default async function Reviews() {
                     )}
                   </div>
                     <div className="flex flex-col">
-                      <span className="text-white font-semibold text-base tracking-tight">
+                      <span
+                        className={`text-white font-semibold text-base tracking-tight ${review.authorStyle?.bold ? "font-bold" : ""} ${review.authorStyle?.italic ? "italic" : ""}`}
+                        style={{ color: review.authorStyle?.color || undefined, fontFamily: review.authorStyle?.fontFamily || undefined, fontSize: review.authorStyle?.fontSize || undefined }}
+                      >
                         {review.author}
                       </span>
-                      <span className="text-gray-400 text-xs">{review.subtitle}</span>
+                      <span
+                        className={`text-gray-400 text-xs ${review.subtitleStyle?.bold ? "font-bold" : ""} ${review.subtitleStyle?.italic ? "italic" : ""}`}
+                        style={{ color: review.subtitleStyle?.color || undefined, fontFamily: review.subtitleStyle?.fontFamily || undefined, fontSize: review.subtitleStyle?.fontSize || undefined }}
+                      >
+                        {review.subtitle}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -227,10 +377,18 @@ export default async function Reviews() {
       {/* Learning Section */}
       {/* <LearningSection /> */}
       {/* Statistics Section */}
-      <StatsSection />
+      <StatsSection
+        badge={reviewsData.statsHeader.badge}
+        titleLine1={reviewsData.statsHeader.titleLine1}
+        titleLine2={reviewsData.statsHeader.titleLine2}
+        badgeStyle={reviewsData.statsHeader.badgeStyle}
+        titleLine1Style={reviewsData.statsHeader.titleLine1Style}
+        titleLine2Style={reviewsData.statsHeader.titleLine2Style}
+        items={reviewsData.statsItems}
+      />
 
       {/* FAQ */}
-      <FAQSection />
+      <FAQSection faq={homeContent.faq} />
     </div>
   );
 }

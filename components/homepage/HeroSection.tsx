@@ -4,8 +4,30 @@ import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Navbar from "../Navbar";
+import Link from "next/link";
+import type { HeroBlock } from "@/lib/schemas/home";
 
-export default function HeroSection() {
+type Props = {
+  hero?: HeroBlock;
+};
+
+export default function HeroSection({ hero }: Props) {
+  const heading = (hero?.heading || "ACCELERATE YOUR\nROBOTICS CAREER")
+    .split("\n")
+    .filter(Boolean);
+  const subtext =
+    hero?.subtext ||
+    "Learn robotics through practical live training sessions, hands-on courses, and guided projects that teach you how to design, build, and deploy real-world robotic systems.";
+  const ctaLabel = hero?.cta?.label || "Book Slot";
+  const ctaUrl = hero?.cta?.url || "/book-slot";
+  const studentsCount =
+    typeof hero?.studentsCount === "number" ? hero.studentsCount : 53;
+  const avatars =
+    hero?.avatars && hero.avatars.length > 0
+      ? hero.avatars
+      : ["/Image /image 116.svg", "/Image /image 117.svg", "/Image /image 119.svg"];
+  const videoSrc = "/Image /aurora.mp4";
+
   return (
     <section className="relative mx-2 mt-4 sm:mx-4 sm:mt-5 lg:mx-6 lg:mt-6">
       {/* Mobile-only: same shape but with slightly curved bottom left/right edges */}
@@ -101,7 +123,7 @@ export default function HeroSection() {
             className="absolute inset-0 w-full h-full object-cover object-[90%_center] sm:object-[95%_center] lg:object-[100%_center] \
                        transform translate-x-[14%] sm:translate-x-[16%] lg:translate-x-[22%] scale-[1.18] lg:scale-[1.22] will-change-transform"
           >
-            <source src="/Image /aurora.mp4" type="video/mp4" />
+            <source src={videoSrc} type="video/mp4" />
           </video>
           {/* Gradient overlay for blending */}
           <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent" />
@@ -117,9 +139,12 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              ACCELERATE YOUR
-              <br />
-              ROBOTICS CAREER
+              {heading.map((line, idx) => (
+                <span key={idx}>
+                  {line}
+                  {idx < heading.length - 1 && <br />}
+                </span>
+              ))}
             </motion.h1>
 
             {/* Description */}
@@ -129,9 +154,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Learn robotics through practical live training sessions, hands-on
-              courses, and guided projects that teach you how to design, build,
-              and deploy real-world robotic systems.
+              {subtext}
             </motion.p>
 
             {/* CTA and Students */}
@@ -142,48 +165,51 @@ export default function HeroSection() {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               {/* Book Slot Button */}
-              <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-3 sm:px-8 sm:py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
+              <Link
+                href={ctaUrl}
+                className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-6 py-3 sm:px-8 sm:py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30"
+              >
                 <span className="text-sm sm:text-base tracking-wide">
-                  Book Slot
+                  {ctaLabel}
                 </span>
                 <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
                   <ArrowRight className="w-3.5 h-3.5 text-[#CCFF00]" />
                 </div>
-              </button>
+              </Link>
 
               {/* Student Avatars */}
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex -space-x-2 sm:-space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-orange-400 to-orange-600 border-2 border-black flex items-center justify-center">
+                  <div className="relative overflow-hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-orange-400 to-orange-600 border-2 border-black flex items-center justify-center">
                     <Image
-                      src="/Image /image 116.svg"
+                      src={avatars[0] || "/Image /image 116.svg"}
                       alt="Student"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
+                      fill
+                      sizes="40px"
+                      className="object-cover"
                     />
                   </div>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-blue-400 to-blue-600 border-2 border-black flex items-center justify-center">
+                  <div className="relative overflow-hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-blue-400 to-blue-600 border-2 border-black flex items-center justify-center">
                     <Image
-                      src="/Image /image 117.svg"
+                      src={avatars[1] || "/Image /image 117.svg"}
                       alt="Student"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
+                      fill
+                      sizes="40px"
+                      className="object-cover"
                     />
                   </div>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-purple-400 to-purple-600 border-2 border-black flex items-center justify-center">
+                  <div className="relative overflow-hidden w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-purple-400 to-purple-600 border-2 border-black flex items-center justify-center">
                     <Image
-                      src="/Image /image 119.svg"
+                      src={avatars[2] || "/Image /image 119.svg"}
                       alt="Student"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
+                      fill
+                      sizes="40px"
+                      className="object-cover"
                     />
                   </div>
                 </div>
                 <span className="text-white text-xs sm:text-sm font-medium">
-                  + 53 Students
+                  + {studentsCount} Students
                 </span>
               </div>
             </motion.div>

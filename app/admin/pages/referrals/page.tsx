@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Plus, Copy, RefreshCcw, Check, X } from "lucide-react";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
 type Referral = {
   id: string;
@@ -21,6 +24,8 @@ export default function ReferralsAdminPage() {
   const [list, setList] = useState<Row[]>([]);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [codeStyle, setCodeStyle] = useState<TextStyle>({});
+  const [nameStyle, setNameStyle] = useState<TextStyle>({});
   const [origin, setOrigin] = useState<string>("");
 
   useEffect(() => {
@@ -130,7 +135,9 @@ export default function ReferralsAdminPage() {
               onChange={(e) => setCode(e.target.value)}
               placeholder="e.g., NANCY"
               className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm"
+              style={{ color: codeStyle.color, fontFamily: codeStyle.fontFamily, fontSize: codeStyle.fontSize, fontWeight: codeStyle.bold ? 700 : 400, fontStyle: codeStyle.italic ? "italic" : "normal" }}
             />
+            <TextStyleControls value={codeStyle} onChange={setCodeStyle} defaultColor="#ffffff" />
           </label>
           <label className="text-sm text-gray-300">
             Name/Label
@@ -139,7 +146,9 @@ export default function ReferralsAdminPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Optional label"
               className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm"
+              style={{ color: nameStyle.color, fontFamily: nameStyle.fontFamily, fontSize: nameStyle.fontSize, fontWeight: nameStyle.bold ? 700 : 400, fontStyle: nameStyle.italic ? "italic" : "normal" }}
             />
+            <TextStyleControls value={nameStyle} onChange={setNameStyle} defaultColor="#ffffff" />
           </label>
           <div className="flex items-end">
             <button

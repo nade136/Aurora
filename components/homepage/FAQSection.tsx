@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+import type { FAQBlock } from "@/lib/schemas/home";
 
 const faqs = [
   {
@@ -42,7 +43,18 @@ const faqs = [
   },
 ];
 
-export default function FAQSection() {
+type Props = {
+  faq?: FAQBlock;
+};
+
+export default function FAQSection({ faq }: Props) {
+  const title = faq?.title || "HAVE QUESTIONS? GET ANSWERS";
+  const subtitle = faq?.subtitle || "Get Direct answers to questions about this cohort";
+  const items =
+    faq?.items && faq.items.length > 0
+      ? faq.items
+      : faqs;
+
   const [openIndexes, setOpenIndexes] = useState<number[]>([0]);
 
   const toggleFAQ = (index: number) => {
@@ -69,16 +81,16 @@ export default function FAQSection() {
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">
-            HAVE QUESTIONS? <span className="text-white">GET ANSWERS</span>
+            {title}
           </h2>
           <p className="text-gray-400 text-sm sm:text-lg">
-            Get Direct answers to questions about this cohort
+            {subtitle}
           </p>
         </motion.div>
 
         {/* FAQ Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-start">
-          {faqs.map((faq, index) => (
+          {items.map((faq, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
