@@ -23,12 +23,12 @@ export default async function Home() {
   return (
     <div className="font-sans">
       <Navbar />
-      <HeroSection />
+      <HeroSection hero={content.hero} />
       <WhatWeDo whatWeDo={content.whatWeDo} />
       <PartneredBy />
       <RoboticsWorkshop workshop={content.workshop} testimonials={content.testimonials} />
-      <TeamSection />
-      <FAQSection />
+      <TeamSection team={content.team} />
+      <FAQSection faq={content.faq} />
     </div>
   );
 }

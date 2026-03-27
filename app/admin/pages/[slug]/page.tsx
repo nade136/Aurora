@@ -6,6 +6,9 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import type { HomeContent } from "@/lib/schemas/home";
 import { defaultHomeContent, defaultGenericContent } from "@/lib/schemas/home";
 import MediaPicker from "@/components/admin/MediaPicker";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
 // Helper function to safely update nested state
 const updateNestedState = <T extends Record<string, any>>(
@@ -42,6 +45,8 @@ export default function AdminHomeEditor() {
   const [previewCount, setPreviewCount] = useState<number>(3);
   // Admin preview-only: selected testimonial index
   const [tPreviewIndex, setTPreviewIndex] = useState<number>(0);
+  const editorRootRef = useRef<HTMLDivElement | null>(null);
+  const [activeStyleKey, setActiveStyleKey] = useState<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -152,6 +157,21 @@ export default function AdminHomeEditor() {
     el.focus();
     try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
   };
+  const styleMap = ((content as any)?.__styles || {}) as Record<string, TextStyle>;
+  const getStyleForKey = (key: string): TextStyle => styleMap[key] || {};
+  const updateStyleForKey = (key: string, style: TextStyle) => {
+    if (!key) return;
+    handleNestedChange(["__styles", key], style as any);
+  };
+  const getStyleKeyForElement = (el: HTMLInputElement | HTMLTextAreaElement) => {
+    const explicit = el.getAttribute("data-style-key");
+    if (explicit) return explicit;
+    const nearestLabel = el.closest("label")?.textContent?.trim() || "";
+    const placeholder = el.getAttribute("placeholder") || "";
+    const id = el.id || "";
+    const name = el.getAttribute("name") || "";
+    return [nearestLabel, placeholder, id, name].filter(Boolean).join("|") || "input";
+  };
   const focusWorkshopBullet = (index: number) => {
     const current = content.workshop?.whoItsFor?.bullets || [];
     if (current[index] != null) {
@@ -247,6 +267,23 @@ export default function AdminHomeEditor() {
 
     loadPage();
   }, [slug, supabase]);
+
+  useEffect(() => {
+    if (!editorRootRef.current) return;
+    const inputs = editorRootRef.current.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea");
+    inputs.forEach((el) => {
+      const type = (el as HTMLInputElement).type;
+      if (type === "file" || type === "checkbox" || type === "radio" || type === "color") return;
+      const key = getStyleKeyForElement(el);
+      const s = getStyleForKey(key);
+      el.style.color = s.color || "";
+      el.style.fontFamily = s.fontFamily || "";
+      el.style.fontSize = s.fontSize || "";
+      el.style.fontWeight = s.bold ? "700" : "";
+      el.style.fontStyle = s.italic ? "italic" : "";
+      el.setAttribute("data-style-key", key);
+    });
+  }, [content]);
 
   // Handle saving draft
   const saveDraft = async () => {
@@ -860,7 +897,27 @@ export default function AdminHomeEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 overflow-x-hidden">
+    <div
+      className="min-h-screen bg-gray-900 text-white p-6 overflow-x-hidden"
+      ref={editorRootRef}
+      onFocusCapture={(e) => {
+        const target = e.target as HTMLElement;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) return;
+        const type = (target as HTMLInputElement).type;
+        if (type === "file" || type === "checkbox" || type === "radio" || type === "color") return;
+        setActiveStyleKey(getStyleKeyForElement(target));
+      }}
+    >
+      {activeStyleKey ? (
+        <div className="sticky top-2 z-20 rounded-lg border border-white/10 bg-[#111] p-3 mb-4">
+          <div className="text-xs text-gray-400 mb-2">Style current input</div>
+          <TextStyleControls
+            value={getStyleForKey(activeStyleKey)}
+            onChange={(next) => updateStyleForKey(activeStyleKey, next)}
+            defaultColor="#ffffff"
+          />
+        </div>
+      ) : null}
       {/* Header */}
       <header className="mb-8">
         <div className="flex justify-between items-center">
@@ -909,22 +966,49 @@ export default function AdminHomeEditor() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Background Media (image/video src)</label>
-              <input
-                type="file"
-                accept="image/*,video/*"
-                onChange={(e) => handleFileUpload(e, ['hero', 'background', 'src'])}
-                className="w-full bg-gray-700 rounded px-3 py-2"
-              />
-              {content.hero?.background?.src && (
-                <div className="mt-2">
-                  <img 
-                    src={content.hero.background.src} 
-                    alt="Preview" 
-                    className="h-32 w-auto object-cover rounded"
-                  />
-                </div>
-              )}
+              <label className="block text-sm font-medium mb-2">Hero Circle Images</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[0, 1, 2].map((idx) => (
+                  <div key={idx} className="bg-gray-700/60 rounded p-3 space-y-2">
+                    <label className="block text-xs text-gray-300">Circle {idx + 1}</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const url = await uploadFile(file, "hero/avatars");
+                          setContent((prev) => {
+                            const hero = (prev.hero || {}) as any;
+                            const arr = [...(hero.avatars || [])];
+                            arr[idx] = url;
+                            return {
+                              ...(prev as any),
+                              hero: {
+                                ...hero,
+                                avatars: arr,
+                              },
+                            } as HomeContent;
+                          });
+                        } catch (error) {
+                          console.error("Error uploading hero avatar:", error);
+                        }
+                      }}
+                      className="w-full bg-gray-800 rounded px-2 py-1.5 text-sm"
+                    />
+                    {content.hero?.avatars?.[idx] ? (
+                      <img
+                        src={content.hero.avatars[idx]}
+                        alt={`Circle ${idx + 1} preview`}
+                        className="h-14 w-14 rounded-full object-cover border border-gray-500"
+                      />
+                    ) : (
+                      <div className="h-14 w-14 rounded-full bg-gray-800 border border-dashed border-gray-500" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -1146,6 +1230,168 @@ export default function AdminHomeEditor() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Team Section */}
+        <section className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">The Team (Team Aurora)</h2>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Team Title</label>
+                <input
+                  type="text"
+                  value={content.team?.title || ""}
+                  onChange={(e) => handleNestedChange(["team", "title"], e.target.value)}
+                  className="w-full bg-gray-700 rounded px-3 py-2"
+                  placeholder="Team Aurora"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Team Subtitle</label>
+                <input
+                  type="text"
+                  value={content.team?.subtitle || ""}
+                  onChange={(e) => handleNestedChange(["team", "subtitle"], e.target.value)}
+                  className="w-full bg-gray-700 rounded px-3 py-2"
+                  placeholder="Meet the Team behind the vision at Aurora"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Team Members</h3>
+              <button
+                type="button"
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+                onClick={() => {
+                  const members = [...(content.team?.members || [])];
+                  members.push({ name: "", role: "", photo: "" } as any);
+                  handleNestedChange(["team", "members"], members);
+                }}
+              >
+                + Add Member
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {(content.team?.members || []).map((member, idx) => (
+                <div key={idx} className="bg-gray-700 p-4 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Member {idx + 1}</h4>
+                    <button
+                      type="button"
+                      className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                      onClick={() => {
+                        const members = [...(content.team?.members || [])];
+                        members.splice(idx, 1);
+                        handleNestedChange(["team", "members"], members);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={member?.name || ""}
+                      onChange={(e) => {
+                        const members = [...(content.team?.members || [])];
+                        const prev = members[idx] || ({} as any);
+                        members[idx] = { ...prev, name: e.target.value } as any;
+                        handleNestedChange(["team", "members"], members);
+                      }}
+                      className="bg-gray-600 rounded px-3 py-2"
+                      placeholder="Name"
+                    />
+                    <input
+                      type="text"
+                      value={member?.role || ""}
+                      onChange={(e) => {
+                        const members = [...(content.team?.members || [])];
+                        const prev = members[idx] || ({} as any);
+                        members[idx] = { ...prev, role: e.target.value } as any;
+                        handleNestedChange(["team", "members"], members);
+                      }}
+                      className="bg-gray-600 rounded px-3 py-2"
+                      placeholder="Role / Title"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-3 items-end">
+                    <div>
+                      <label className="block text-xs text-gray-300 mb-1">Photo URL</label>
+                      <input
+                        type="text"
+                        value={member?.photo || ""}
+                        onChange={(e) => {
+                          const members = [...(content.team?.members || [])];
+                          const prev = members[idx] || ({} as any);
+                          members[idx] = { ...prev, photo: e.target.value } as any;
+                          handleNestedChange(["team", "members"], members);
+                        }}
+                        className="w-full bg-gray-600 rounded px-3 py-2"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <label className="inline-flex items-center justify-center px-3 py-2 rounded bg-blue-600 hover:bg-blue-700 text-sm cursor-pointer">
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const url = await uploadFile(file, "team/photos");
+                            const members = [...(content.team?.members || [])];
+                            const prev = members[idx] || ({} as any);
+                            members[idx] = { ...prev, photo: url } as any;
+                            handleNestedChange(["team", "members"], members);
+                          } catch (error) {
+                            console.error("Error uploading team photo:", error);
+                          }
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => openPicker(`team.members.${idx}.photo`)}
+                      className="inline-flex items-center justify-center px-3 py-2 rounded bg-gray-600 hover:bg-gray-500 text-sm"
+                    >
+                      Browse
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const members = [...(content.team?.members || [])];
+                        const prev = members[idx] || ({} as any);
+                        members[idx] = { ...prev, photo: "" } as any;
+                        handleNestedChange(["team", "members"], members);
+                      }}
+                      className="inline-flex items-center justify-center px-3 py-2 rounded bg-red-700 hover:bg-red-600 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {member?.photo ? (
+                    <img
+                      src={member.photo}
+                      alt={`${member?.name || "Member"} preview`}
+                      className="h-28 w-24 object-cover rounded-lg border border-gray-500"
+                    />
+                  ) : null}
+                </div>
+              ))}
+
+              {(content.team?.members || []).length === 0 && (
+                <div className="text-sm text-gray-400 italic">No team members yet. Click “Add Member”.</div>
+              )}
             </div>
           </div>
         </section>
@@ -1934,6 +2180,109 @@ export default function AdminHomeEditor() {
 
                 {/* Summaries preview removed */}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">FAQ</h2>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">FAQ Title</label>
+                <input
+                  type="text"
+                  value={content.faq?.title || ""}
+                  onChange={(e) => handleNestedChange(["faq", "title"], e.target.value)}
+                  className="w-full bg-gray-700 rounded px-3 py-2"
+                  placeholder="HAVE QUESTIONS? GET ANSWERS"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">FAQ Subtitle</label>
+                <input
+                  type="text"
+                  value={content.faq?.subtitle || ""}
+                  onChange={(e) => handleNestedChange(["faq", "subtitle"], e.target.value)}
+                  className="w-full bg-gray-700 rounded px-3 py-2"
+                  placeholder="Get Direct answers to questions..."
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">FAQ Items</h3>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+                  onClick={() => {
+                    const items = [...(content.faq?.items || [])];
+                    items.push({ question: "", answer: "" });
+                    handleNestedChange(["faq", "items"], items);
+                  }}
+                >
+                  + Add FAQ
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 rounded text-sm"
+                  onClick={() => handleNestedChange(["faq", "items"], [])}
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {(content.faq?.items || []).map((item, idx) => (
+                <div key={idx} className="bg-gray-700 p-4 rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">FAQ {idx + 1}</h4>
+                    <button
+                      type="button"
+                      className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                      onClick={() => {
+                        const items = [...(content.faq?.items || [])];
+                        items.splice(idx, 1);
+                        handleNestedChange(["faq", "items"], items);
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={item?.question || ""}
+                    onChange={(e) => {
+                      const items = [...(content.faq?.items || [])];
+                      const prev = items[idx] || { question: "", answer: "" };
+                      items[idx] = { ...prev, question: e.target.value };
+                      handleNestedChange(["faq", "items"], items);
+                    }}
+                    className="w-full bg-gray-600 rounded px-3 py-2"
+                    placeholder="Question"
+                  />
+                  <textarea
+                    value={item?.answer || ""}
+                    onChange={(e) => {
+                      const items = [...(content.faq?.items || [])];
+                      const prev = items[idx] || { question: "", answer: "" };
+                      items[idx] = { ...prev, answer: e.target.value };
+                      handleNestedChange(["faq", "items"], items);
+                    }}
+                    className="w-full bg-gray-600 rounded px-3 py-2 h-24"
+                    placeholder="Answer"
+                  />
+                </div>
+              ))}
+
+              {(content.faq?.items || []).length === 0 && (
+                <div className="text-sm text-gray-400 italic">
+                  No FAQ items. Click "Add FAQ" to create one.
+                </div>
+              )}
             </div>
           </div>
         </section>

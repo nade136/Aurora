@@ -28,12 +28,14 @@ export default function Footer() {
               &quot;Move with Intent, Leave Nothing to Chance&quot;
             </p>
             <div className="flex justify-center">
-              <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-8 py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
-                <span className="text-base tracking-wide">Get Started</span>
-                <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
-                  <ArrowRight className="w-3.5 h-3.5 text-[#CCFF00]" />
-                </div>
-              </button>
+              <Link href="/book-slot">
+                <button className="bg-[#CCFF00] hover:bg-[#b8e600] text-black font-bold px-8 py-3.5 rounded-lg flex items-center gap-3 transition-all duration-200 hover:scale-105 shadow-lg shadow-[#CCFF00]/30">
+                  <span className="text-base tracking-wide">Get Started</span>
+                  <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                    <ArrowRight className="w-3.5 h-3.5 text-[#CCFF00]" />
+                  </div>
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -67,7 +69,7 @@ export default function Footer() {
             {/* Social Media Icons */}
             <div className="flex items-center gap-3">
               <Link
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/aurora-robotics-in/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-11 h-11 bg-white/5 hover:bg-[#CCFF00] rounded-md flex items-center justify-center transition-all duration-300 group border border-white/10"
@@ -75,7 +77,7 @@ export default function Footer() {
                 <Linkedin className="w-5 h-5 text-white group-hover:text-black transition-colors" />
               </Link>
               <Link
-                href="https://twitter.com"
+                href="https://x.com/aurora_robots"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-11 h-11 bg-white/5 hover:bg-[#CCFF00] rounded-md flex items-center justify-center transition-all duration-300 group border border-white/10"
@@ -97,7 +99,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <Link
-                  href="/services/trainings"
+                  href="/support"
                   className="text-gray-400 hover:text-[#CCFF00] transition-colors duration-200 text-base"
                 >
                   Trainings
@@ -105,7 +107,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/services/robotic-engineering"
+                  href="/support"
                   className="text-gray-400 hover:text-[#CCFF00] transition-colors duration-200 text-base"
                 >
                   Robotic Engineering
@@ -113,7 +115,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/services/firmware"
+                  href="/support"
                   className="text-gray-400 hover:text-[#CCFF00] transition-colors duration-200 text-base"
                 >
                   Firmware

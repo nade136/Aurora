@@ -7,15 +7,22 @@ import RewardCard, { RewardItem } from "@/components/renderers/RewardCard";
 import { mediaPublicUrl } from "@/utils/media";
 import { rewardsDummy } from "@/data/rewardsDummy";
 import MediaPicker from "@/components/admin/MediaPicker";
+import TextStyleControls from "@/components/admin/TextStyleControls";
+
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
 type AwardData = {
   key?: string;
   title: string;
+  titleStyle?: TextStyle;
   quote?: string;
+  quoteStyle?: TextStyle;
   icon?: string;
   name: string;
+  nameStyle?: TextStyle;
   portrait?: string;
   description?: string;
+  descriptionStyle?: TextStyle;
 };
 
 type Block = { id: string; order: number; type: string; data: AwardData };
@@ -349,12 +356,15 @@ export default function RewardsEditorPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="text-sm text-gray-300">Title
                   <input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.title || ""} onChange={(e) => updateAward(b.id, { title: e.target.value })} />
+                  <TextStyleControls value={b.data.titleStyle} onChange={(next) => updateAward(b.id, { titleStyle: next })} defaultColor="#ffffff" />
                 </label>
                 <label className="text-sm text-gray-300">Name
                   <input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.name || ""} onChange={(e) => updateAward(b.id, { name: e.target.value })} />
+                  <TextStyleControls value={b.data.nameStyle} onChange={(next) => updateAward(b.id, { nameStyle: next })} defaultColor="#ffffff" />
                 </label>
                 <label className="text-sm text-gray-300 sm:col-span-2">Quote
                   <input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.quote || ""} onChange={(e) => updateAward(b.id, { quote: e.target.value })} />
+                  <TextStyleControls value={b.data.quoteStyle} onChange={(next) => updateAward(b.id, { quoteStyle: next })} defaultColor="#d1d5db" />
                 </label>
                 <div className="text-sm text-gray-300">
                   Award trophy icon
@@ -392,6 +402,7 @@ export default function RewardsEditorPage() {
                 </div>
                 <label className="text-sm text-gray-300 sm:col-span-2">Description
                   <textarea className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" rows={3} value={b.data.description || ""} onChange={(e) => updateAward(b.id, { description: e.target.value })} />
+                  <TextStyleControls value={b.data.descriptionStyle} onChange={(next) => updateAward(b.id, { descriptionStyle: next })} defaultColor="#9ca3af" />
                 </label>
               </div>
             </div>

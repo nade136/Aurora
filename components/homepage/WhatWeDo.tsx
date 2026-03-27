@@ -132,8 +132,8 @@ export default function WhatWeDo({ whatWeDo }: Props) {
                     </p>
 
                     {/* Button */}
-                    <a
-                      href={(service as any).cta?.url || "#"}
+                  <a
+                    href={(service as any).cta?.url || (service.title === "Education" ? "/book-slot" : "/support")}
                       className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1"
                     >
                       <span>
@@ -193,7 +193,7 @@ export default function WhatWeDo({ whatWeDo }: Props) {
 
                 {/* Button */}
                 <a
-                  href={(service as any).cta?.url || "#"}
+                  href={(service as any).cta?.url || (service.title === "Education" ? "/book-slot" : "/support")}
                   className="flex items-center gap-2 text-[#CCFF00] font-semibold text-sm hover:gap-3 transition-all duration-200 group-hover:translate-x-1"
                 >
                   <span>

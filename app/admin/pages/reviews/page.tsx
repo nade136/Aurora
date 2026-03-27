@@ -4,11 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import MediaPicker from "@/components/admin/MediaPicker";
+import TextStyleControls from "@/components/admin/TextStyleControls";
 import { mediaPublicUrl } from "@/utils/media";
 import { reviewsDummy } from "@/data/reviewsDummy";
 
 // Types for each block
-type HeroData = { title: string; subtitle?: string };
+type HeroData = {
+  title: string;
+  subtitle?: string;
+  titleStyle?: TextStyle;
+  subtitleStyle?: TextStyle;
+};
 type SocialPlatform = 'x' | 'linkedin' | 'instagram' | 'facebook' | 'whatsapp';
 type ReviewCard = { 
   icon?: string; 
@@ -16,6 +22,11 @@ type ReviewCard = {
   author: string; 
   subtitle?: string; 
   avatar?: string; 
+  avatarStyle?: TextStyle;
+  socialUrlStyle?: TextStyle;
+  textStyle?: TextStyle;
+  authorStyle?: TextStyle;
+  subtitleStyle?: TextStyle;
   social: { 
     platform?: SocialPlatform; 
     url?: string;
@@ -24,8 +35,29 @@ type ReviewCard = {
     linkedin?: string;
   } 
 };
-type Stat = { label: string; value: string };
-type FAQ = { question: string; answer: string };
+type Stat = {
+  label: string;
+  value: string;
+  subtext?: string;
+  valueStyle?: TextStyle;
+  labelStyle?: TextStyle;
+  subtextStyle?: TextStyle;
+};
+type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
+type StatsHeaderData = {
+  badge: string;
+  titleLine1: string;
+  titleLine2: string;
+  badgeStyle?: TextStyle;
+  titleLine1Style?: TextStyle;
+  titleLine2Style?: TextStyle;
+};
+type FAQ = {
+  question: string;
+  answer: string;
+  questionStyle?: TextStyle;
+  answerStyle?: TextStyle;
+};
 
 type Block<T> = { id: string; order: number; type: string; data: T };
 
@@ -40,6 +72,7 @@ export default function ReviewsEditorPage() {
   // Data per section
   const [hero, setHero] = useState<Block<HeroData> | null>(null);
   const [cards, setCards] = useState<Block<ReviewCard>[]>([]);
+  const [statsHeader, setStatsHeader] = useState<Block<StatsHeaderData> | null>(null);
   const [stats, setStats] = useState<Block<Stat>[]>([]);
   const [faqs, setFaqs] = useState<Block<FAQ>[]>([]);
 
@@ -51,6 +84,11 @@ export default function ReviewsEditorPage() {
   const [rankValue, setRankValue] = useState<number>(1);
   const formRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [publishing, setPublishing] = useState(false);
+  const [localInputStyles, setLocalInputStyles] = useState<Record<string, TextStyle>>({});
+  const localInputStyle = (key: string) => {
+    const s = localInputStyles[key] || {};
+    return { color: s.color, fontFamily: s.fontFamily, fontSize: s.fontSize, fontWeight: s.bold ? 700 : 400, fontStyle: s.italic ? "italic" : "normal" };
+  };
 
   const scrollToEdit = (id: string) => {
     const el = formRefs.current[id];
@@ -71,6 +109,19 @@ export default function ReviewsEditorPage() {
     list.splice(toIdx, 0, item);
     const normalized = list.map((b, idx) => ({ ...b, order: idx }));
     setCards(normalized);
+    for (const b of normalized) {
+      await supabase.from("blocks").update({ order: b.order }).eq("id", b.id);
+    }
+  };
+  const setFaqRank = async (id: string, rank1: number) => {
+    const list = [...faqs].sort((a, b) => a.order - b.order);
+    const fromIdx = list.findIndex((b) => b.id === id);
+    if (fromIdx < 0) return;
+    const toIdx = Math.max(0, Math.min(rank1 - 1, list.length - 1));
+    const [item] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, item);
+    const normalized = list.map((b, idx) => ({ ...b, order: idx }));
+    setFaqs(normalized);
     for (const b of normalized) {
       await supabase.from("blocks").update({ order: b.order }).eq("id", b.id);
     }
@@ -108,7 +159,47 @@ export default function ReviewsEditorPage() {
 
       // stats
       const { data: statBlks } = await supabase.from("blocks").select("id, order, type, data").eq("section_id", statsId).order("order");
-      setStats((statBlks as Block<Stat>[]) || []);
+      const statBlocks = (statBlks as Block<any>[]) || [];
+      let statItems = statBlocks.filter((b) => b.type === "stat") as Block<Stat>[];
+      const templates: Stat[] = [
+        { value: "12", label: "Universities Reached", subtext: "" },
+        { value: "50+", label: "Cohort 1 Students", subtext: "" },
+        { value: "15", label: "Projects Delivered", subtext: "" },
+      ];
+
+      // Backfill old setups so admin always shows exactly 3 stat inputs.
+      if (statItems.length < 3) {
+        for (let i = statItems.length; i < 3; i += 1) {
+          const { data: inserted, error: insertErr } = await supabase
+            .from("blocks")
+            .insert({
+              section_id: statsId,
+              type: "stat",
+              order: i,
+              data: templates[i],
+            })
+            .select("id, order, type, data")
+            .single();
+
+          if (insertErr) {
+            console.error("Failed to create missing stat row", insertErr);
+            break;
+          }
+          if (inserted) {
+            statItems = [...statItems, inserted as Block<Stat>];
+          }
+        }
+      }
+
+      const sorted = statItems.sort((a, b) => a.order - b.order);
+      const firstThree = sorted.slice(0, 3);
+      const extras = sorted.slice(3);
+      if (extras.length) {
+        await supabase.from("blocks").delete().in("id", extras.map((e) => e.id));
+      }
+
+      setStatsHeader((statBlocks.find((b) => b.type === "stats_header") as Block<StatsHeaderData> | undefined) || null);
+      setStats(firstThree.map((s, i) => ({ ...s, order: i })));
 
       // faqs
       const { data: faqBlks } = await supabase.from("blocks").select("id, order, type, data").eq("section_id", faqId).order("order");
@@ -193,7 +284,7 @@ export default function ReviewsEditorPage() {
   const addStat = async () => {
     if (!sections.stats) return;
     const order = (stats[stats.length - 1]?.order ?? -1) + 1;
-    const base: Stat = { label: "Label", value: "0" };
+    const base: Stat = { label: "Label", value: "0", subtext: "" };
     const { data, error } = await supabase.from("blocks").insert({ section_id: sections.stats, type: "stat", order, data: base }).select("id, order, type, data").single();
     if (error) return console.error(error);
     setStats((prev) => [...prev, data as Block<Stat>]);
@@ -208,6 +299,47 @@ export default function ReviewsEditorPage() {
   const removeStat = async (id: string) => {
     await supabase.from("blocks").delete().eq("id", id);
     setStats((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const saveStatsHeader = async (patch: Partial<StatsHeaderData>) => {
+    if (!sections.stats) return;
+    const next = {
+      badge: "STATISTICS",
+      titleLine1: "WE HAVE THE",
+      titleLine2: "NUMBERS",
+      badgeStyle: {},
+      titleLine1Style: {},
+      titleLine2Style: {},
+      ...(statsHeader?.data || {}),
+      ...patch,
+    } as StatsHeaderData;
+
+    if (!statsHeader) {
+      const { data, error } = await supabase
+        .from("blocks")
+        .insert({
+          section_id: sections.stats,
+          type: "stats_header",
+          order: -1,
+          data: next,
+        })
+        .select("id, order, type, data")
+        .single();
+      if (error) return console.error(error);
+      setStatsHeader(data as Block<StatsHeaderData>);
+      return;
+    }
+
+    const { error } = await supabase.from("blocks").update({ data: next }).eq("id", statsHeader.id);
+    if (error) return console.error(error);
+    setStatsHeader({ ...statsHeader, data: next });
+  };
+
+  const setStatsTextStyle = async (
+    field: "badgeStyle" | "titleLine1Style" | "titleLine2Style",
+    style: TextStyle
+  ) => {
+    await saveStatsHeader({ [field]: style } as Partial<StatsHeaderData>);
   };
 
   const addFaq = async () => {
@@ -289,9 +421,19 @@ export default function ReviewsEditorPage() {
           <label className="text-sm text-gray-300">Title
             <input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={hero?.data.title || ""} onChange={(e)=>saveHero({ title: e.target.value })}/>
           </label>
+          <TextStyleControls
+            value={hero?.data.titleStyle}
+            onChange={(next) => saveHero({ titleStyle: next })}
+            defaultColor="#ffffff"
+          />
           <label className="text-sm text-gray-300">Subtitle
             <input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={hero?.data.subtitle || ""} onChange={(e)=>saveHero({ subtitle: e.target.value })}/>
           </label>
+          <TextStyleControls
+            value={hero?.data.subtitleStyle}
+            onChange={(next) => saveHero({ subtitleStyle: next })}
+            defaultColor="#9ca3af"
+          />
         </div>
       )}
 
@@ -304,7 +446,8 @@ export default function ReviewsEditorPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span>Rank by name</span>
-            <input value={rankSearch} onChange={(e)=>setRankSearch(e.target.value)} placeholder="Type name..." className="bg-transparent border border-white/10 rounded px-2 py-1.5 text-xs" />
+            <input value={rankSearch} onChange={(e)=>setRankSearch(e.target.value)} placeholder="Type name..." className="bg-transparent border border-white/10 rounded px-2 py-1.5 text-xs" style={localInputStyle("rankSearch")} />
+            <TextStyleControls value={localInputStyles.rankSearch} onChange={(next)=>setLocalInputStyles(s=>({...s, rankSearch: next}))} defaultColor="#ffffff" />
             <span>to</span>
             <select className="bg-transparent border border-white/10 rounded px-1 py-1 text-xs" value={rankValue} onChange={(e)=>setRankValue(Number(e.target.value))}>
               {Array.from({ length: Math.max(1, cards.length) }).map((_, idx) => (<option key={idx+1} value={idx+1}>{idx+1}</option>))}
@@ -364,8 +507,11 @@ export default function ReviewsEditorPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="text-sm text-gray-300">Text<textarea rows={3} className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.text||""} onChange={(e)=>updateCard(b.id,{ text:e.target.value })}/></label>
+                  <TextStyleControls value={b.data.textStyle} onChange={(next)=>updateCard(b.id,{ textStyle: next })} defaultColor="#d1d5db" />
                   <label className="text-sm text-gray-300">Author<input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.author||""} onChange={(e)=>updateCard(b.id,{ author:e.target.value })}/></label>
+                  <TextStyleControls value={b.data.authorStyle} onChange={(next)=>updateCard(b.id,{ authorStyle: next })} defaultColor="#ffffff" />
                   <label className="text-sm text-gray-300">Subtitle<input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.subtitle||""} onChange={(e)=>updateCard(b.id,{ subtitle:e.target.value })}/></label>
+                  <TextStyleControls value={b.data.subtitleStyle} onChange={(next)=>updateCard(b.id,{ subtitleStyle: next })} defaultColor="#9ca3af" />
                   {/* Badge/icon section commented out - 2025-12-02
                   <div className="text-sm text-gray-300">
                     Badge/icon (top-left)
@@ -392,7 +538,7 @@ export default function ReviewsEditorPage() {
                         {b.data.avatar ? <img src={mediaPublicUrl(b.data.avatar)} alt="avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">None</div>}
                       </div>
                       <div className="flex-1 flex gap-2">
-                        <input className="flex-1 bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.avatar||""} onChange={(e)=>updateCard(b.id,{ avatar:e.target.value })} placeholder="Storage path or URL" />
+                        <input className="flex-1 bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.avatar||""} onChange={(e)=>updateCard(b.id,{ avatar:e.target.value })} placeholder="Storage path or URL" style={{ color: b.data.avatarStyle?.color, fontFamily: b.data.avatarStyle?.fontFamily, fontSize: b.data.avatarStyle?.fontSize, fontWeight: b.data.avatarStyle?.bold ? 700 : 400, fontStyle: b.data.avatarStyle?.italic ? "italic" : "normal" }} />
                         <button type="button" onClick={()=>chooseImage(b.id, "avatar")} className="px-2 py-1.5 text-xs rounded-md bg-white/5 border border-white/10">Choose</button>
                         <label className="px-2 py-1.5 text-xs rounded-md bg-white/5 border border-white/10 cursor-pointer">
                           {uploadingId === b.id + ":avatar" ? "Uploading…" : "Upload"}
@@ -400,6 +546,7 @@ export default function ReviewsEditorPage() {
                         </label>
                       </div>
                     </div>
+                    <TextStyleControls value={b.data.avatarStyle} onChange={(next)=>updateCard(b.id,{ avatarStyle: next })} defaultColor="#ffffff" />
                   </div>
                   <div className="col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -437,6 +584,7 @@ export default function ReviewsEditorPage() {
                         <input 
                           className="flex-1 bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" 
                           value={b.data.social?.url || ""}
+                          style={{ color: b.data.socialUrlStyle?.color, fontFamily: b.data.socialUrlStyle?.fontFamily, fontSize: b.data.socialUrlStyle?.fontSize, fontWeight: b.data.socialUrlStyle?.bold ? 700 : 400, fontStyle: b.data.socialUrlStyle?.italic ? "italic" : "normal" }}
                           onChange={(e) => {
                             let url = e.target.value;
                             // Auto-format WhatsApp URLs
@@ -467,6 +615,7 @@ export default function ReviewsEditorPage() {
                           }
                         />
                       </div>
+                      <TextStyleControls value={b.data.socialUrlStyle} onChange={(next)=>updateCard(b.id,{ socialUrlStyle: next })} defaultColor="#ffffff" />
                       {b.data.social?.platform === 'whatsapp' && b.data.social?.url && (
                         <div className="text-xs text-gray-400 mt-1">
                           WhatsApp link: <span className="text-blue-400 break-all">{b.data.social.url}</span>
@@ -515,11 +664,56 @@ export default function ReviewsEditorPage() {
       {/* STATS */}
       {active === "stats" && (
         <div className="space-y-6">
+          <div className="rounded-xl border border-white/10 bg-[#111] p-4 space-y-3">
+            <div className="font-semibold">Statistics Heading</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Badge text (STATISTICS)</label>
+                <input
+                  className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
+                  value={statsHeader?.data.badge || ""}
+                  onChange={(e) => saveStatsHeader({ badge: e.target.value })}
+                  placeholder="e.g., STATISTICS"
+                />
+                <TextStyleControls
+                  value={statsHeader?.data?.badgeStyle}
+                  onChange={(next) => setStatsTextStyle("badgeStyle", next)}
+                  defaultColor="#ccff00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Heading line 1 (WE HAVE THE)</label>
+                <input
+                  className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
+                  value={statsHeader?.data.titleLine1 || ""}
+                  onChange={(e) => saveStatsHeader({ titleLine1: e.target.value })}
+                  placeholder="e.g., WE HAVE THE"
+                />
+                <TextStyleControls
+                  value={statsHeader?.data?.titleLine1Style}
+                  onChange={(next) => setStatsTextStyle("titleLine1Style", next)}
+                  defaultColor="#ffffff"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-300 mb-1">Heading line 2 (NUMBERS)</label>
+                <input
+                  className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
+                  value={statsHeader?.data.titleLine2 || ""}
+                  onChange={(e) => saveStatsHeader({ titleLine2: e.target.value })}
+                  placeholder="e.g., NUMBERS"
+                />
+                <TextStyleControls
+                  value={statsHeader?.data?.titleLine2Style}
+                  onChange={(next) => setStatsTextStyle("titleLine2Style", next)}
+                  defaultColor="#ffffff"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
-            <div className="font-semibold">Statistics</div>
-            <button onClick={addStat} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#CCFF00] text-black text-xs font-semibold">
-              <Plus className="w-4 h-4"/>Add Stat
-            </button>
+            <div className="font-semibold">Statistics (3 fixed numbers)</div>
           </div>
           
           {/* Stats Editor */}
@@ -538,42 +732,69 @@ export default function ReviewsEditorPage() {
                       <button 
                         onClick={() => move(stats, setStats, b.id, -1)} 
                         className="px-2 py-1 text-xs rounded bg-white/5 hover:bg-white/10 transition-colors"
-                        disabled={i === 0}
+                        disabled
                       >
                         Up
                       </button>
                       <button 
                         onClick={() => move(stats, setStats, b.id, 1)} 
                         className="px-2 py-1 text-xs rounded bg-white/5 hover:bg-white/10 transition-colors"
-                        disabled={i === stats.length - 1}
+                        disabled
                       >
                         Down
                       </button>
                       <button 
                         onClick={() => removeStat(b.id)} 
                         className="px-2 py-1 text-xs rounded bg-white/5 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
+                        disabled
                       >
                         <Trash2 className="w-3 h-3"/>
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm text-gray-300 mb-1">Value</label>
+                      <label className="block text-sm text-gray-300 mb-1">
+                        {i === 0 ? "Left number" : i === 1 ? "Middle number" : "Right number"}
+                      </label>
                       <input 
                         className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
                         value={b.data.value || ""} 
                         onChange={(e) => updateStat(b.id, { value: e.target.value })}
                         placeholder="e.g., 100%"
                       />
+                      <TextStyleControls
+                        value={b.data.valueStyle}
+                        onChange={(next) => updateStat(b.id, { valueStyle: next })}
+                        defaultColor="#ffffff"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-300 mb-1">Label</label>
+                      <label className="block text-sm text-gray-300 mb-1">Represents</label>
                       <input 
                         className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
                         value={b.data.label || ""} 
                         onChange={(e) => updateStat(b.id, { label: e.target.value })}
-                        placeholder="e.g., Satisfaction Rate"
+                        placeholder="e.g., Universities Reached"
+                      />
+                      <TextStyleControls
+                        value={b.data.labelStyle}
+                        onChange={(next) => updateStat(b.id, { labelStyle: next })}
+                        defaultColor="#9ca3af"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-300 mb-1">Extra note (optional)</label>
+                      <input
+                        className="w-full bg-transparent border border-white/10 rounded-md px-3 py-2 text-sm focus:border-[#CCFF00]/50 focus:ring-1 focus:ring-[#CCFF00]/30 transition-colors"
+                        value={b.data.subtext || ""}
+                        onChange={(e) => updateStat(b.id, { subtext: e.target.value })}
+                        placeholder="Optional"
+                      />
+                      <TextStyleControls
+                        value={b.data.subtextStyle}
+                        onChange={(next) => updateStat(b.id, { subtextStyle: next })}
+                        defaultColor="#6b7280"
                       />
                     </div>
                   </div>
@@ -591,6 +812,9 @@ export default function ReviewsEditorPage() {
                   <div key={stat.id} className="bg-[#151515] rounded-xl p-6 border border-white/10">
                     <div className="text-3xl font-bold text-[#CCFF00] mb-2">{stat.data.value || "0"}</div>
                     <div className="text-sm text-gray-300">{stat.data.label || "Stat Label"}</div>
+                    {stat.data.subtext ? (
+                      <div className="text-xs text-gray-500 mt-1">{stat.data.subtext}</div>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -611,10 +835,20 @@ export default function ReviewsEditorPage() {
             {faqs.map((b,i)=>(
               <div key={b.id} className="rounded-lg border border-white/10 p-3 bg-black/30">
                 <div className="flex items-center justify-between mb-2"><div className="flex items-center gap-2 text-xs text-gray-400"><GripVertical className="w-3 h-3"/>#{i+1}</div>
-                  <div className="flex gap-2"><button onClick={()=>move(faqs,setFaqs,b.id,-1)} className="px-2 py-1 text-xs rounded bg-white/5">Up</button><button onClick={()=>move(faqs,setFaqs,b.id,1)} className="px-2 py-1 text-xs rounded bg-white/5">Down</button><button onClick={()=>removeFaq(b.id)} className="px-2 py-1 text-xs rounded bg-white/5 text-red-400"><Trash2 className="w-3 h-3"/></button></div></div>
+                  <div className="flex gap-2 items-center">
+                    <div className="flex items-center gap-1 text-xs">
+                      <span>Order</span>
+                      <select className="bg-transparent border border-white/10 rounded px-1 py-0.5 text-xs" value={i+1} onChange={(e)=>setFaqRank(b.id, Number(e.target.value))}>
+                        {Array.from({ length: faqs.length }).map((_, idx) => (<option key={idx+1} value={idx+1}>{idx+1}</option>))}
+                      </select>
+                    </div>
+                    <button onClick={()=>move(faqs,setFaqs,b.id,-1)} className="px-2 py-1 text-xs rounded bg-white/5">Up</button><button onClick={()=>move(faqs,setFaqs,b.id,1)} className="px-2 py-1 text-xs rounded bg-white/5">Down</button><button onClick={()=>removeFaq(b.id)} className="px-2 py-1 text-xs rounded bg-white/5 text-red-400"><Trash2 className="w-3 h-3"/></button>
+                  </div></div>
                 <div className="grid grid-cols-1 gap-3">
                   <label className="text-sm text-gray-300">Question<input className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.question||""} onChange={(e)=>updateFaq(b.id,{ question:e.target.value })}/></label>
+                  <TextStyleControls value={b.data.questionStyle} onChange={(next)=>updateFaq(b.id,{ questionStyle: next })} defaultColor="#ffffff" />
                   <label className="text-sm text-gray-300">Answer<textarea rows={3} className="mt-1 w-full bg-transparent border border-white/10 rounded px-2 py-1.5 text-sm" value={b.data.answer||""} onChange={(e)=>updateFaq(b.id,{ answer:e.target.value })}/></label>
+                  <TextStyleControls value={b.data.answerStyle} onChange={(next)=>updateFaq(b.id,{ answerStyle: next })} defaultColor="#9ca3af" />
                 </div>
               </div>
             ))}
