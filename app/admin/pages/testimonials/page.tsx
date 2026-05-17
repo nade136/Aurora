@@ -9,14 +9,27 @@ import TextStyleControls from "@/components/admin/TextStyleControls";
 
 type TextStyle = { bold?: boolean; italic?: boolean; color?: string; fontFamily?: string; fontSize?: string };
 
+type Size = "normal" | "tall";
+type MediaType = "image" | "video";
+
+type BlockData = {
+  name?: string;
+  nameStyle?: TextStyle;
+  size?: Size;
+  mediaType?: MediaType;
+  mediaUrl?: string;
+  media?: { type?: MediaType; url?: string };
+  avatarUrl?: string;
+  avatar?: string;
+};
+
+type PublishedBlock = { type: string; data: BlockData; order: number };
+type PublishedSection = { key: string; order: number; blocks: PublishedBlock[] };
+
 // DB block type shape used elsewhere in the app
 type Block<T> = { id: string; order: number; type: string; data: T };
 
-export default function TestimonialsAdminPage() {
-  // UI-only local state copy so clicking a card can edit its content
-  type Size = "normal" | "tall";
-  type MediaType = "image" | "video";
-  type Item = {
+type Item = {
     id: string;
     name: string;
     nameStyle?: TextStyle;
@@ -24,8 +37,9 @@ export default function TestimonialsAdminPage() {
     mediaType: MediaType;
     mediaUrl: string; // main big media
     avatarUrl: string; // small circle image
-  };
+};
 
+export default function TestimonialsAdminPage() {
   const supabase = useMemo(() => supabaseBrowser(), []);
 
   const [items, setItems] = useState<Item[]>([]);
@@ -43,6 +57,7 @@ export default function TestimonialsAdminPage() {
   const [sectionId, setSectionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const getDisplayUrl = (path: string) => {
     if (!path) return path;
@@ -54,7 +69,7 @@ export default function TestimonialsAdminPage() {
     const load = async () => {
       setLoading(true);
       // Ensure testimonials page
-      const { data: p, error: pErr } = await supabase
+      const { data: p } = await supabase
         .from("pages")
         .select("id")
         .eq("slug", "testimonials")
@@ -98,7 +113,7 @@ export default function TestimonialsAdminPage() {
         .order("order");
       if (bErr) { console.error(bErr); setLoading(false); return; }
 
-      const mapped: Item[] = (blks as Block<any>[] | null || []).map((b) => ({
+      const mapped: Item[] = (blks as Block<BlockData>[] | null || []).map((b) => ({
         id: b.id,
         name: b.data?.name || "",
         nameStyle: b.data?.nameStyle || {},
@@ -203,6 +218,34 @@ export default function TestimonialsAdminPage() {
     persist().finally(() => closeModal());
   };
 
+  const deleteItem = async () => {
+    if (openId == null || deleting) return;
+
+    const isSeed = openId.startsWith("seed-");
+    if (
+      !isSeed &&
+      !window.confirm("Remove this testimonial? Publish afterward to update the public page.")
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      if (!isSeed) {
+        const { error } = await supabase.from("blocks").delete().eq("id", openId);
+        if (error) {
+          console.error(error);
+          alert("Could not delete testimonial. Please try again.");
+          return;
+        }
+      }
+      setItems((prev) => prev.filter((it) => it.id !== openId));
+      closeModal();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const uploadToStorage = async (file: File): Promise<string | null> => {
     try {
       const name = `${Date.now()}-${file.name}`;
@@ -233,14 +276,18 @@ export default function TestimonialsAdminPage() {
                   .eq("page_id", pageId)
                   .order("order");
                 if (sErr) { console.error(sErr); setPublishing(false); return; }
-                const sectionsWithBlocks: any[] = [];
+                const sectionsWithBlocks: PublishedSection[] = [];
                 for (const s of secs || []) {
                   const { data: blks } = await supabase
                     .from("blocks")
                     .select("type, data, order")
                     .eq("section_id", s.id)
                     .order("order");
-                  sectionsWithBlocks.push({ key: s.key, order: s.order, blocks: blks || [] });
+                  sectionsWithBlocks.push({
+                    key: s.key,
+                    order: s.order,
+                    blocks: (blks as PublishedBlock[] | null) || [],
+                  });
                 }
                 const snapshot = { slug: "testimonials", sections: sectionsWithBlocks };
                 await supabase
@@ -259,6 +306,9 @@ export default function TestimonialsAdminPage() {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          {loading ? (
+            <p className="text-center text-gray-400 py-12">Loading testimonials…</p>
+          ) : (
           <div className="grid grid-cols-3 gap-4 items-end auto-rows-min">
             {items.map((t) => (
               <div
@@ -333,6 +383,7 @@ export default function TestimonialsAdminPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
 
@@ -457,19 +508,33 @@ export default function TestimonialsAdminPage() {
               </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-end gap-2">
+            <div className="mt-5 flex items-center justify-between gap-2">
               <button
-                onClick={closeModal}
-                className="px-3 py-2 text-sm rounded bg-white/5 border border-white/10 text-white"
+                type="button"
+                onClick={deleteItem}
+                disabled={deleting}
+                className="px-3 py-2 text-sm rounded border border-red-500/40 text-red-400 hover:bg-red-500/10 disabled:opacity-60"
               >
-                Cancel
+                {deleting ? "Deleting…" : "Delete"}
               </button>
-              <button
-                onClick={saveDraft}
-                className="px-3 py-2 text-sm rounded bg-[#CCFF00] text-black font-semibold"
-              >
-                Save
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={deleting}
+                  className="px-3 py-2 text-sm rounded bg-white/5 border border-white/10 text-white disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  disabled={deleting}
+                  className="px-3 py-2 text-sm rounded bg-[#CCFF00] text-black font-semibold disabled:opacity-60"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
