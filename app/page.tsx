@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/homepage/HeroSection";
-import PartneredBy from "@/components/homepage/PartneredBy";
+// import PartneredBy from "@/components/homepage/PartneredBy";
 import WhatWeDo from "@/components/homepage/WhatWeDo";
 import RoboticsWorkshop from "@/components/homepage/RoboticsWorkshop";
 import TeamSection from "@/components/homepage/TeamSection";
@@ -18,15 +18,19 @@ export default async function Home() {
     .select("content_json")
     .eq("slug", "home")
     .maybeSingle();
-  const content: HomeContent = (page?.content_json as HomeContent | undefined) ?? defaultHomeContent;
+  const content: HomeContent =
+    (page?.content_json as HomeContent | undefined) ?? defaultHomeContent;
 
   return (
     <div className="font-sans">
       <Navbar />
       <HeroSection hero={content.hero} />
       <WhatWeDo whatWeDo={content.whatWeDo} />
-      <PartneredBy />
-      <RoboticsWorkshop workshop={content.workshop} testimonials={content.testimonials} />
+      {/* <PartneredBy /> */}
+      <RoboticsWorkshop
+        workshop={content.workshop}
+        testimonials={content.testimonials}
+      />
       <TeamSection team={content.team} />
       <FAQSection faq={content.faq} />
     </div>
