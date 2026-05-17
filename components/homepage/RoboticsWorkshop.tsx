@@ -8,6 +8,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { type TestimonialsBlock, type WorkshopBlock } from "@/lib/schemas/home";
 import { mediaPublicUrl } from "@/utils/media";
+
+// Commented out: set to true to show "Proof That We Deliver" on the homepage
+const SHOW_PROOF_TESTIMONIALS = false;
+
 type Props = {
   workshop?: WorkshopBlock;
   testimonials?: TestimonialsBlock;
@@ -50,16 +54,15 @@ export default function RoboticsWorkshop({
   const remaining = Math.max(0, items.length - 3);
 
   // Countdown (live) based on workshop.whoItsFor.countdownTargetISO
-  const [startTs, setStartTs] = useState<number>(0);
-  const [tick, setTick] = useState<number>(0);
+  const [startTs] = useState(() => Date.now());
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    setStartTs(Date.now());
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
   const targetISO = w?.whoItsFor?.countdownTargetISO;
   const targetTs = targetISO ? new Date(targetISO).getTime() : 0;
-  const elapsed = startTs > 0 ? tick * 1000 : 0;
+  const elapsed = tick * 1000;
   const diffMs = targetISO ? Math.max(0, targetTs - (startTs + elapsed)) : 0;
   const hrs = Math.floor(diffMs / 3_600_000);
   const mins = Math.floor((diffMs % 3_600_000) / 60_000);
@@ -548,7 +551,8 @@ export default function RoboticsWorkshop({
           </motion.div>
         </div>
 
-        {/* Proof That We Deliver Section */}
+        {/* Proof That We Deliver Section — commented out (SHOW_PROOF_TESTIMONIALS) */}
+        {SHOW_PROOF_TESTIMONIALS && (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -780,6 +784,7 @@ export default function RoboticsWorkshop({
             </div>
           </div>
         </motion.div>
+        )}
       </div>
     </section>
   );
