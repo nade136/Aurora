@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 
+const INDUSTRY_URL = "https://aurora-robotics.github.io/industry-portfolio/";
+const RESEARCH_URL = "https://aurora-robotics.github.io/research-portfolio/";
+
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -15,14 +18,14 @@ export default function Navbar() {
     href === "/" ? pathname === "/" : pathname === href;
   const linkClass = (href: string) =>
     `${baseLink} ${isActive(href) ? "!text-[#C6FF00]" : "text-white"}`;
-  if (typeof window !== "undefined") {
-    // debug current route once per render
-    console.log("Navbar pathname:", pathname);
-  }
+  const externalLinkClass = `${baseLink} text-white`;
+  const mobileItemClass = (href: string) =>
+    `px-3 py-2 rounded-md ${linkClass(href)} hover:bg-white/5`;
+  const mobileExternalClass = `px-3 py-2 rounded-md ${externalLinkClass} hover:bg-white/5`;
   return (
     <nav className="fixed top-2 sm:top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 bg-gray-800/20 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl w-[calc(100%-1rem)] sm:w-auto">
       <div className="px-4 sm:px-6 md:px-8 py-4">
-        <div className="flex items-center justify-between gap-4 md:gap-16 md:min-w-[800px] w-full">
+        <div className="flex items-center justify-between gap-4 md:gap-10 md:min-w-[1050px] w-full">
           {/* Logo */}
           <Link
             href="/"
@@ -41,11 +44,23 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation Links - Desktop */}
-          <div className="hidden md:flex items-center justify-center space-x-12 whitespace-nowrap flex-1">
-            {/* <Link href="/" className={linkClass("/")}>
-              HOME
-            </Link> */}
-
+          <div className="hidden md:flex items-center justify-center gap-6 lg:gap-8 whitespace-nowrap flex-1">
+            <a
+              href={INDUSTRY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={externalLinkClass}
+            >
+              INDUSTRY
+            </a>
+            <a
+              href={RESEARCH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={externalLinkClass}
+            >
+              RESEARCH
+            </a>
             <Link href="/workshop" className={linkClass("/workshop")}>
               WORKSHOP
             </Link>
@@ -91,39 +106,48 @@ export default function Navbar() {
         <div className="md:hidden px-4 pb-4">
           <div className="rounded-xl border border-white/10 bg-gray-900/70 backdrop-blur-md p-4">
             <nav className="flex flex-col">
-              {/* <Link
-                href="/"
-                className={`px-3 py-2 rounded-md ${linkClass("/")} hover:bg-white/5`}
+              <a
+                href={INDUSTRY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={mobileExternalClass}
                 onClick={() => setOpen(false)}
               >
-                HOME
-              </Link> */}
-              {/*
+                INDUSTRY
+              </a>
+              <a
+                href={RESEARCH_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={mobileExternalClass}
+                onClick={() => setOpen(false)}
+              >
+                RESEARCH
+              </a>
               <Link
                 href="/workshop"
-                className={`px-3 py-2 rounded-md ${linkClass("/workshop")} hover:bg-white/5`}
+                className={mobileItemClass("/workshop")}
                 onClick={() => setOpen(false)}
               >
                 WORKSHOP
               </Link>
-              */}
-              {/* <Link
+              <Link
                 href="/reviews"
-                className={`px-3 py-2 rounded-md ${linkClass("/reviews")} hover:bg-white/5`}
+                className={mobileItemClass("/reviews")}
                 onClick={() => setOpen(false)}
               >
                 REVIEWS
-              </Link> */}
+              </Link>
               <Link
                 href="/internships"
-                className={`px-3 py-2 rounded-md ${linkClass("/internships")} hover:bg-white/5`}
+                className={mobileItemClass("/internships")}
                 onClick={() => setOpen(false)}
               >
                 INTERNSHIPS
               </Link>
               <Link
                 href="/support"
-                className={`px-3 py-2 rounded-md ${linkClass("/support")} hover:bg-white/5`}
+                className={mobileItemClass("/support")}
                 onClick={() => setOpen(false)}
               >
                 SUPPORT

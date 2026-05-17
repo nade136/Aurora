@@ -23,7 +23,16 @@ type BlockData = {
   avatar?: string;
 };
 
-type PublishedBlock = { type: string; data: BlockData; order: number };
+type HeadingBlockData = { line1?: string; line2?: string };
+
+type PublishedBlock = {
+  type: string;
+  data: BlockData | HeadingBlockData;
+  order: number;
+};
+
+const DEFAULT_HEADING_LINE1 = "HEAR WHAT THEY HAVE TO SAY";
+const DEFAULT_HEADING_LINE2 = "ABOUT COHORT 1";
 type PublishedSection = { key: string; order: number; blocks: PublishedBlock[] };
 
 // DB block type shape used elsewhere in the app
@@ -55,8 +64,13 @@ export default function TestimonialsAdminPage() {
 
   const [pageId, setPageId] = useState<string | null>(null);
   const [sectionId, setSectionId] = useState<string | null>(null);
+  const [headingSectionId, setHeadingSectionId] = useState<string | null>(null);
+  const [headingBlockId, setHeadingBlockId] = useState<string | null>(null);
+  const [headingLine1, setHeadingLine1] = useState(DEFAULT_HEADING_LINE1);
+  const [headingLine2, setHeadingLine2] = useState(DEFAULT_HEADING_LINE2);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
+  const [savingHeading, setSavingHeading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const getDisplayUrl = (path: string) => {
@@ -86,6 +100,55 @@ export default function TestimonialsAdminPage() {
       }
       setPageId(pid!);
 
+      // Ensure section for page heading
+      const { data: hSec } = await supabase
+        .from("sections")
+        .select("id")
+        .eq("page_id", pid)
+        .eq("key", "testimonials_heading")
+        .maybeSingle();
+      let hsid = hSec?.id as string | undefined;
+      if (!hsid) {
+        const { data: hSec2, error: hErr } = await supabase
+          .from("sections")
+          .insert({ page_id: pid, key: "testimonials_heading", order: 0 })
+          .select("id")
+          .single();
+        if (hErr) { console.error(hErr); setLoading(false); return; }
+        hsid = hSec2?.id as string;
+      }
+      setHeadingSectionId(hsid!);
+
+      const { data: hBlk } = await supabase
+        .from("blocks")
+        .select("id, data")
+        .eq("section_id", hsid)
+        .eq("type", "heading")
+        .maybeSingle();
+      let hbid = hBlk?.id as string | undefined;
+      const headingData = (hBlk?.data as HeadingBlockData | undefined) ?? {};
+      if (!hbid) {
+        const { data: hBlk2, error: hBlkErr } = await supabase
+          .from("blocks")
+          .insert({
+            section_id: hsid,
+            type: "heading",
+            order: 0,
+            data: { line1: DEFAULT_HEADING_LINE1, line2: DEFAULT_HEADING_LINE2 },
+          })
+          .select("id, data")
+          .single();
+        if (hBlkErr) { console.error(hBlkErr); setLoading(false); return; }
+        hbid = hBlk2?.id as string;
+        const created = hBlk2?.data as HeadingBlockData;
+        setHeadingLine1(created?.line1 || DEFAULT_HEADING_LINE1);
+        setHeadingLine2(created?.line2 || DEFAULT_HEADING_LINE2);
+      } else {
+        setHeadingLine1(headingData.line1 || DEFAULT_HEADING_LINE1);
+        setHeadingLine2(headingData.line2 || DEFAULT_HEADING_LINE2);
+      }
+      setHeadingBlockId(hbid!);
+
       // Ensure section for grid
       const { data: s1 } = await supabase
         .from("sections")
@@ -97,7 +160,7 @@ export default function TestimonialsAdminPage() {
       if (!sid) {
         const { data: s2, error: sErr } = await supabase
           .from("sections")
-          .insert({ page_id: pid, key: "testimonials_grid", order: 0 })
+          .insert({ page_id: pid, key: "testimonials_grid", order: 1 })
           .select("id")
           .single();
         if (sErr) { console.error(sErr); setLoading(false); return; }
@@ -113,7 +176,10 @@ export default function TestimonialsAdminPage() {
         .order("order");
       if (bErr) { console.error(bErr); setLoading(false); return; }
 
-      const mapped: Item[] = (blks as Block<BlockData>[] | null || []).map((b) => ({
+      const testimonialBlks = (blks as Block<BlockData>[] | null || []).filter(
+        (b) => !b.type || b.type === "testimonial",
+      );
+      const mapped: Item[] = testimonialBlks.map((b) => ({
         id: b.id,
         name: b.data?.name || "",
         nameStyle: b.data?.nameStyle || {},
@@ -218,6 +284,27 @@ export default function TestimonialsAdminPage() {
     persist().finally(() => closeModal());
   };
 
+  const saveHeading = async () => {
+    if (!headingBlockId || savingHeading) return;
+    setSavingHeading(true);
+    const payload: HeadingBlockData = {
+      line1: headingLine1.trim() || DEFAULT_HEADING_LINE1,
+      line2: headingLine2.trim() || DEFAULT_HEADING_LINE2,
+    };
+    const { error } = await supabase
+      .from("blocks")
+      .update({ data: payload })
+      .eq("id", headingBlockId);
+    setSavingHeading(false);
+    if (error) {
+      console.error(error);
+      alert("Could not save heading. Please try again.");
+      return;
+    }
+    setHeadingLine1(payload.line1!);
+    setHeadingLine2(payload.line2!);
+  };
+
   const deleteItem = async () => {
     if (openId == null || deleting) return;
 
@@ -270,6 +357,17 @@ export default function TestimonialsAdminPage() {
               onClick={async () => {
                 if (!pageId) return;
                 setPublishing(true);
+                if (headingBlockId) {
+                  await supabase
+                    .from("blocks")
+                    .update({
+                      data: {
+                        line1: headingLine1.trim() || DEFAULT_HEADING_LINE1,
+                        line2: headingLine2.trim() || DEFAULT_HEADING_LINE2,
+                      },
+                    })
+                    .eq("id", headingBlockId);
+                }
                 const { data: secs, error: sErr } = await supabase
                   .from("sections")
                   .select("id, key, order")
@@ -301,6 +399,50 @@ export default function TestimonialsAdminPage() {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#CCFF00] text-black font-semibold disabled:opacity-60"
             >
               {publishing ? "Publishing…" : "Publish"}
+            </button>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto mb-8 rounded-xl border border-white/10 bg-[#0b0b0b] p-5">
+          <h3 className="text-sm font-semibold text-white mb-1">Section heading</h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Shown above the testimonial grid on the public page. Save here, then Publish.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Heading line 1</label>
+              <input
+                value={headingLine1}
+                onChange={(e) => setHeadingLine1(e.target.value)}
+                disabled={loading}
+                className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white text-sm"
+                placeholder={DEFAULT_HEADING_LINE1}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Heading line 2</label>
+              <input
+                value={headingLine2}
+                onChange={(e) => setHeadingLine2(e.target.value)}
+                disabled={loading}
+                className="w-full px-3 py-2 rounded bg-black/40 border border-white/10 text-white text-sm"
+                placeholder={DEFAULT_HEADING_LINE2}
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl md:text-2xl font-bold text-white text-center leading-tight flex-1 min-w-[200px]">
+              {headingLine1 || DEFAULT_HEADING_LINE1}
+              <br />
+              {headingLine2 || DEFAULT_HEADING_LINE2}
+            </h2>
+            <button
+              type="button"
+              onClick={saveHeading}
+              disabled={loading || savingHeading || !headingBlockId}
+              className="px-3 py-2 text-sm rounded bg-white/10 border border-white/10 text-white hover:bg-white/15 disabled:opacity-60 shrink-0"
+            >
+              {savingHeading ? "Saving…" : "Save heading"}
             </button>
           </div>
         </div>

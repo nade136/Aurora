@@ -15,47 +15,91 @@ export type TestimonialItem = {
   avatarUrl: string;
 };
 
+export type TestimonialsHeading = {
+  line1: string;
+  line2: string;
+};
+
+const DEFAULT_HEADING: TestimonialsHeading = {
+  line1: "HEAR WHAT THEY HAVE TO SAY",
+  line2: "ABOUT COHORT 1",
+};
+
+type SnapshotBlock = {
+  type?: string;
+  order?: number;
+  data?: Record<string, unknown>;
+};
+
+type SnapshotSection = {
+  key: string;
+  order?: number;
+  blocks?: SnapshotBlock[];
+};
+
 const toUrl = (p?: string | null) => {
   if (!p) return "";
   if (p.startsWith("http") || p.startsWith("/")) return p;
   return mediaPublicUrl(p) || "";
 };
 
-async function loadPublished(): Promise<TestimonialItem[]> {
+function parseHeading(sections: SnapshotSection[] | undefined): TestimonialsHeading {
+  const headingSection = sections?.find((s) => s.key === "testimonials_heading");
+  const headingBlock =
+    headingSection?.blocks?.find((b) => b.type === "heading") ?? headingSection?.blocks?.[0];
+  const d = headingBlock?.data ?? {};
+  return {
+    line1: (typeof d.line1 === "string" && d.line1) || DEFAULT_HEADING.line1,
+    line2: (typeof d.line2 === "string" && d.line2) || DEFAULT_HEADING.line2,
+  };
+}
+
+async function loadPublished(): Promise<{ items: TestimonialItem[]; heading: TestimonialsHeading }> {
   const supabase = await supabaseServer();
   const { data: snap } = await supabase
     .from("published_snapshots")
     .select("data")
     .eq("slug", "testimonials")
     .maybeSingle();
-  const sections = (snap as any)?.data?.sections as Array<{ key: string; order?: number; blocks: any[] }> | undefined;
+  const snapData = snap?.data as { sections?: SnapshotSection[] } | undefined;
+  const sections = snapData?.sections;
+  const heading = parseHeading(sections);
   const grid = sections?.find((s) => s.key === "testimonials_grid");
-  const blocks = grid?.blocks || [];
-  return blocks
-    .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
-    .map((b: any) => {
+  const blocks = (grid?.blocks || []).filter(
+    (b) => !b.type || b.type === "testimonial",
+  );
+  const items = blocks
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((b) => {
       const d = b.data || {};
+      const media = d.media as { type?: MediaType; url?: string } | undefined;
       return {
-        name: d.name || "",
+        name: (typeof d.name === "string" ? d.name : "") || "",
         size: (d.size as Size) || "normal",
-        mediaType: (d.mediaType as MediaType) || (d.media?.type as MediaType) || "image",
-        mediaUrl: toUrl(d.mediaUrl || d.media?.url),
-        avatarUrl: toUrl(d.avatarUrl || d.avatar),
+        mediaType: (d.mediaType as MediaType) || media?.type || "image",
+        mediaUrl: toUrl(
+          (typeof d.mediaUrl === "string" ? d.mediaUrl : undefined) || media?.url,
+        ),
+        avatarUrl: toUrl(
+          (typeof d.avatarUrl === "string" ? d.avatarUrl : undefined) ||
+            (typeof d.avatar === "string" ? d.avatar : undefined),
+        ),
       } as TestimonialItem;
     });
+  return { items, heading };
 }
 
 export default async function TestimonialsSectionServer() {
-  const items = await loadPublished();
+  const { items, heading } = await loadPublished();
 
   return (
     <section className="bg-black py-16 px-6">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10 leading-tight">
-          HEAR WHAT THEY HAVE TO SAY
+          {heading.line1}
           <br />
-          ABOUT COHORT 1
+          {heading.line2}
         </h2>
 
         {/* Video Grid - Full Width */}
