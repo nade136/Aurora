@@ -5,6 +5,12 @@ import { useParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { HomeContent } from "@/lib/schemas/home";
 import { defaultHomeContent, defaultGenericContent } from "@/lib/schemas/home";
+import {
+  archivePageContentBeforeWrite,
+  backupSlugForPage,
+  confirmIfPlaceholder,
+  type SnapshotBackup,
+} from "@/lib/cms/pageEditorSafeguards";
 import MediaPicker from "@/components/admin/MediaPicker";
 import TextStyleControls from "@/components/admin/TextStyleControls";
 
@@ -37,6 +43,9 @@ export default function AdminHomeEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [pageId, setPageId] = useState<string | null>(null);
+  const [pageStatus, setPageStatus] = useState<"draft" | "published">("draft");
+  const [restoring, setRestoring] = useState(false);
   const [content, setContent] = useState<HomeContent>(baseDefault);
   const [pickTarget, setPickTarget] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -229,11 +238,13 @@ export default function AdminHomeEditor() {
         setLoading(true);
         const { data: page } = await supabase
           .from("pages")
-          .select("id, content_json")
+          .select("id, status, content_json")
           .eq("slug", slug)
           .maybeSingle();
 
         if (!page) {
+          setPageId(null);
+          setPageStatus("draft");
           // Create page if it doesn't exist
           const safeTitle = slug.charAt(0).toUpperCase() + slug.slice(1);
           const { data: newPage } = await supabase
@@ -246,15 +257,20 @@ export default function AdminHomeEditor() {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
-            .select('id, content_json')
+            .select("id, content_json")
             .single();
-            
+
           if (newPage?.content_json) {
             setContent(newPage.content_json as HomeContent);
+            setPageId((newPage as { id: string }).id);
           } else {
             setContent(baseDefault);
           }
         } else {
+          setPageId(page.id as string);
+          setPageStatus(
+            page.status === "published" ? "published" : "draft",
+          );
           // Ensure we never set content to null; fallback to defaults if empty
           setContent((page.content_json || baseDefault) as HomeContent);
         }
@@ -285,62 +301,135 @@ export default function AdminHomeEditor() {
     });
   }, [content]);
 
-  // Handle saving draft
+  const fetchExistingPage = async () => {
+    const { data } = await supabase
+      .from("pages")
+      .select("id, status, content_json")
+      .eq("slug", slug)
+      .maybeSingle();
+    return data;
+  };
+
+  // Save without unpublishing: keeps status if page was already live.
   const saveDraft = async () => {
     if (!slug) return;
-    
+    if (!confirmIfPlaceholder(content, slug)) return;
+
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('pages')
-        .upsert(
-          {
-            slug,
-            title: slug.charAt(0).toUpperCase() + slug.slice(1),
-            content_json: content,
-            status: 'draft',
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'slug' }
+      const existing = await fetchExistingPage();
+      if (existing?.content_json) {
+        await archivePageContentBeforeWrite(
+          supabase,
+          existing.id as string,
+          slug,
+          existing.content_json,
         );
+      }
+      const status =
+        existing?.status === "published" || pageStatus === "published"
+          ? "published"
+          : "draft";
+
+      const { error } = await supabase.from("pages").upsert(
+        {
+          slug,
+          title: slug.charAt(0).toUpperCase() + slug.slice(1),
+          content_json: content,
+          status,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "slug" },
+      );
       if (error) {
-        console.error('Error saving draft (RLS/env?):', error);
+        console.error("Error saving draft (RLS/env?):", error);
         alert(`Save failed: ${error.message}`);
+      } else {
+        setPageStatus(status);
+        alert(
+          status === "published"
+            ? "Saved. Live site updated (still published)."
+            : "Saved as draft. Click Publish when ready for the live site.",
+        );
       }
     } catch (error) {
-      console.error('Error saving draft:', error);
+      console.error("Error saving draft:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  // Handle publishing
   const publish = async () => {
     if (!slug) return;
-    
+    if (!confirmIfPlaceholder(content, slug)) return;
+
     setPublishing(true);
     try {
-      const { error } = await supabase
-        .from('pages')
-        .upsert(
-          {
-            slug,
-            title: slug.charAt(0).toUpperCase() + slug.slice(1),
-            content_json: content,
-            status: 'published',
-            published_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'slug' }
+      const existing = await fetchExistingPage();
+      if (existing?.content_json) {
+        await archivePageContentBeforeWrite(
+          supabase,
+          existing.id as string,
+          slug,
+          existing.content_json,
         );
+      }
+
+      const { error } = await supabase.from("pages").upsert(
+        {
+          slug,
+          title: slug.charAt(0).toUpperCase() + slug.slice(1),
+          content_json: content,
+          status: "published",
+          published_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "slug" },
+      );
       if (error) {
-        console.error('Error publishing (RLS/env?):', error);
+        console.error("Error publishing (RLS/env?):", error);
         alert(`Publish failed: ${error.message}`);
+      } else {
+        setPageStatus("published");
+        alert("Published. A backup of the previous version was stored.");
       }
     } catch (error) {
-      console.error('Error publishing:', error);
+      console.error("Error publishing:", error);
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const restoreFromBackup = async () => {
+    setRestoring(true);
+    try {
+      const { data: snap, error } = await supabase
+        .from("published_snapshots")
+        .select("data")
+        .eq("slug", backupSlugForPage(slug))
+        .maybeSingle();
+      if (error) {
+        alert(`Could not load backup: ${error.message}`);
+        return;
+      }
+      const backup = snap?.data as SnapshotBackup | undefined;
+      if (!backup?.content_json) {
+        alert(
+          "No backup found yet. Backups are created when you Save or Publish after the first version exists.",
+        );
+        return;
+      }
+      if (
+        !window.confirm(
+          "Load the last backed-up version into the editor? Click Publish when you are ready to put it live.",
+        )
+      ) {
+        return;
+      }
+      setContent(backup.content_json);
+      alert("Backup loaded into the editor. Review, then Publish.");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -425,20 +514,30 @@ export default function AdminHomeEditor() {
         <header className="mb-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Edit Workshop Page</h1>
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-2">
               <button
+                type="button"
+                onClick={restoreFromBackup}
+                disabled={restoring}
+                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
+              >
+                {restoring ? "Loading…" : "Restore backup"}
+              </button>
+              <button
+                type="button"
                 onClick={saveDraft}
                 disabled={saving}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save Draft'}
+                {saving ? "Saving…" : "Save"}
               </button>
               <button
+                type="button"
                 onClick={publish}
                 disabled={publishing}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
               >
-                {publishing ? 'Publishing...' : 'Publish'}
+                {publishing ? "Publishing…" : "Publish"}
               </button>
             </div>
           </div>
@@ -924,23 +1023,36 @@ export default function AdminHomeEditor() {
           <h1 className="text-2xl font-bold">
             Edit {slug.charAt(0).toUpperCase() + slug.slice(1)} Page
           </h1>
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap gap-2">
             <button
+              type="button"
+              onClick={restoreFromBackup}
+              disabled={restoring}
+              className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
+            >
+              {restoring ? "Loading…" : "Restore backup"}
+            </button>
+            <button
+              type="button"
               onClick={saveDraft}
               disabled={saving}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Draft'}
+              {saving ? "Saving…" : "Save"}
             </button>
             <button
+              type="button"
               onClick={publish}
               disabled={publishing}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
-              {publishing ? 'Publishing...' : 'Publish'}
+              {publishing ? "Publishing…" : "Publish"}
             </button>
           </div>
         </div>
+        <p className="text-xs text-gray-400 mt-2">
+          Save keeps the page live if it was already published. A backup is stored before each Save/Publish. Use Publish after Restore backup.
+        </p>
       </header>
 
       <main className="space-y-12">
