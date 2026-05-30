@@ -12,6 +12,9 @@ import { mediaPublicUrl } from "@/utils/media";
 // Commented out: set to true to show "Proof That We Deliver" on the homepage
 const SHOW_PROOF_TESTIMONIALS = false;
 
+// Commented out: set to true to show top row (Learn the Right Tools + Industry relevant skills)
+const SHOW_TOP_WORKSHOP_CARDS = false;
+
 type Props = {
   workshop?: WorkshopBlock;
   testimonials?: TestimonialsBlock;
@@ -89,7 +92,8 @@ export default function RoboticsWorkshop({
           )}
         </motion.div>
 
-        {/* Top Two Cards */}
+        {/* Top Two Cards — commented out via SHOW_TOP_WORKSHOP_CARDS */}
+        {SHOW_TOP_WORKSHOP_CARDS && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-12">
           {/* Left Card */}
           <motion.div
@@ -321,6 +325,7 @@ export default function RoboticsWorkshop({
             </div>
           </motion.div>
         </div>
+        )}
 
         {/* Middle Row - 3 Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
